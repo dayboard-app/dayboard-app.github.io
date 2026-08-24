@@ -1,15 +1,19 @@
 package io.github.dayboard.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import io.github.dayboard.data.ClockController
 import io.github.dayboard.data.DragController
 import io.github.dayboard.data.SettingsController
+import io.github.dayboard.data.WeatherController
 import io.github.dayboard.domain.model.BoardColumn
 import io.github.dayboard.domain.model.CardId
+import io.github.dayboard.ui.cards.ClockCard
 import io.github.dayboard.ui.components.Card
 import io.github.dayboard.ui.icons.Icon
 import io.github.dayboard.ui.icons.LucideIcon
@@ -32,6 +36,8 @@ import org.jetbrains.compose.web.dom.Text
 fun Dashboard(
     email: String,
     settings: SettingsController,
+    clock: ClockController,
+    weather: WeatherController,
     drag: DragController,
     onSignOut: () -> Unit,
 ) {
@@ -46,6 +52,14 @@ fun Dashboard(
     // mutates state the composition does not own.
     SideEffect { drag.setVisible(visibleLeft, visibleRight) }
 
+    // Driven from the board rather than from the clock card, because a collapsed
+    // card has no body: looking up the weather there would throw the reading away
+    // every time somebody collapsed the clock, and fetch it again on every expand.
+    DisposableEffect(settings.settings.showWeather, settings.settings.weatherCity) {
+        weather.follow(settings.settings.showWeather, settings.settings.weatherCity)
+        onDispose { weather.stop() }
+    }
+
     Div({ classes("app") }) {
         BoardHeader(email = email, onSignOut = onSignOut)
 
@@ -54,14 +68,32 @@ fun Dashboard(
                 BoardCard(
                     card = CardId.Clock,
                     settings = settings,
+                    clock = clock,
+                    weather = weather,
                     drag = drag,
                     draggable = false,
                     onExpand = { expanded = CardId.Clock },
                 )
 
                 Div({ classes("board__columns") }) {
-                    BoardColumnView(BoardColumn.Left, visibleLeft, settings, drag) { expanded = it }
-                    BoardColumnView(BoardColumn.Right, visibleRight, settings, drag) { expanded = it }
+                    BoardColumnView(
+                        column = BoardColumn.Left,
+                        visible = visibleLeft,
+                        settings = settings,
+                        clock = clock,
+                        weather = weather,
+                        drag = drag,
+                        onExpand = { expanded = it },
+                    )
+                    BoardColumnView(
+                        column = BoardColumn.Right,
+                        visible = visibleRight,
+                        settings = settings,
+                        clock = clock,
+                        weather = weather,
+                        drag = drag,
+                        onExpand = { expanded = it },
+                    )
                 }
             }
         }
@@ -82,7 +114,13 @@ fun Dashboard(
                 centerContent = card == CardId.Clock || card == CardId.Timer,
                 onToggleExpanded = { expanded = null },
             ) {
-                CardBody(card)
+                CardBody(
+                    card = card,
+                    expanded = true,
+                    settings = settings,
+                    clock = clock,
+                    weather = weather,
+                )
             }
         }
     }
@@ -114,6 +152,8 @@ private fun BoardColumnView(
     column: BoardColumn,
     visible: List<String>,
     settings: SettingsController,
+    clock: ClockController,
+    weather: WeatherController,
     drag: DragController,
     onExpand: (CardId) -> Unit,
 ) {
@@ -136,6 +176,8 @@ private fun BoardColumnView(
                 BoardCard(
                     card = card,
                     settings = settings,
+                    clock = clock,
+                    weather = weather,
                     drag = drag,
                     column = column,
                     index = index,
@@ -150,6 +192,8 @@ private fun BoardColumnView(
 private fun BoardCard(
     card: CardId,
     settings: SettingsController,
+    clock: ClockController,
+    weather: WeatherController,
     drag: DragController,
     column: BoardColumn = BoardColumn.Left,
     index: Int = 0,
@@ -180,27 +224,47 @@ private fun BoardCard(
                 }
             },
         ) {
-            CardBody(card)
+            CardBody(
+                card = card,
+                expanded = false,
+                settings = settings,
+                clock = clock,
+                weather = weather,
+            )
         }
     }
 }
 
 /**
- * Stands in for a card's real contents.
+ * A card's contents, inline or full-screen.
  *
- * Each of these is a phase of its own; the board exists first so they have
- * somewhere to be built.
+ * The three that are still placeholders are each a phase of their own; the board
+ * exists first so they have somewhere to be built.
  */
 @Composable
-private fun CardBody(card: CardId) {
-    P({ classes("muted") }) {
-        Text(
-            when (card) {
-                CardId.Clock -> "Clock and weather arrive next."
-                CardId.Timer -> "The Pomodoro timer arrives after the clock."
-                CardId.Tasks -> "Tasks arrive after the timer."
-                CardId.Notes -> "Notes arrive after tasks."
-            },
+private fun CardBody(
+    card: CardId,
+    expanded: Boolean,
+    settings: SettingsController,
+    clock: ClockController,
+    weather: WeatherController,
+) {
+    when (card) {
+        CardId.Clock -> ClockCard(
+            time = clock.time,
+            showSeconds = settings.settings.showSeconds,
+            weather = weather.weather,
+            loadingWeather = weather.loading,
+            expanded = expanded,
         )
+
+        CardId.Timer -> Placeholder("The Pomodoro timer arrives after the clock.")
+        CardId.Tasks -> Placeholder("Tasks arrive after the timer.")
+        CardId.Notes -> Placeholder("Notes arrive after tasks.")
     }
+}
+
+@Composable
+private fun Placeholder(text: String) {
+    P({ classes("muted") }) { Text(text) }
 }

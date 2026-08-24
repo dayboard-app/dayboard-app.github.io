@@ -100,7 +100,7 @@ fun AuthScreen(
                     if (submitting) {
                         // The label is replaced rather than joined by a spinner, so
                         // the button does not resize mid-request.
-                        Icon(LucideIcon.LoaderCircle, size = 16, className = "auth__spinner")
+                        Icon(LucideIcon.LoaderCircle, size = 16, className = "spinner")
                     } else {
                         Text(mode.submitLabel)
                         Icon(LucideIcon.ArrowRight, size = 16)
