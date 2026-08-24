@@ -84,3 +84,24 @@ external interface SnapshotMetadata {
      */
     val fromCache: Boolean
 }
+
+external interface CollectionReference
+
+/** One document inside a query result. Its id is not among the stored fields. */
+external interface QueryDocumentSnapshot {
+    val id: String
+
+    fun data(): dynamic
+}
+
+external interface QuerySnapshot {
+    /**
+     * The matching documents, in Firestore's order.
+     *
+     * Every list this app shows is sorted by something it holds itself - a position,
+     * a creation time - so the order here is never relied on.
+     */
+    val docs: Array<QueryDocumentSnapshot>
+
+    val metadata: SnapshotMetadata
+}
