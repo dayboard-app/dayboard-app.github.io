@@ -122,6 +122,11 @@ fun CardLayout.moveCard(
  * counting positions, then places the dragged card after it when moving down and
  * before it when moving up. Anchoring is what keeps hidden cards where they were:
  * counting would shift them.
+ *
+ * A destination past the last visible card means the user dropped below
+ * everything, which is an ordinary gesture rather than a miss, so the card goes
+ * last. Treating it as "no target" would make dragging a card to the bottom of its
+ * own column silently do nothing.
  */
 private fun List<String>.reorderedWithin(
     dragged: String,
@@ -129,10 +134,14 @@ private fun List<String>.reorderedWithin(
     destinationIndex: Int,
     isVisible: (String) -> Boolean,
 ): List<String> {
-    val target = filter(isVisible).getOrNull(destinationIndex)
-    if (target == null || target == dragged) return this
-
+    val visible = filter(isVisible)
     val remaining = this - dragged
+
+    val target = visible.getOrNull(destinationIndex)
+        ?: return if (destinationIndex >= visible.size) remaining + dragged else this
+
+    if (target == dragged) return this
+
     val anchor = remaining.indexOf(target)
     if (anchor < 0) return this
 
