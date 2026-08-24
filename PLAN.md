@@ -68,6 +68,16 @@ Companion to [REQUIREMENTS.md](REQUIREMENTS.md). Phases are ordered so every pha
 
 ## Phase 5 — Pomodoro timer (L)
 
+> **Background-tab behaviour, found while building Phase 1.** Compose HTML drives
+> recomposition from `DefaultMonotonicFrameClock`, which is `requestAnimationFrame`.
+> A browser pauses that in a hidden or unpainted tab, so **the UI stops recomposing
+> while the tab is in the background**, and `delay`-based ticks are throttled on top
+> of that. The original does not share this: React re-renders from a `setInterval`
+> that keeps running (throttled to ~1s). Nothing is visible while hidden, so this is
+> only a correctness problem if the timer trusts its own tick count. It must not:
+> recompute `timeLeft` from `lastTickAt` on `visibilitychange` as well as on load,
+> the same elapsed-time maths the restore path already needs.
+
 1. Timer state machine in `:shared` (pure, clock injected): tick, completion/skip, auto-start rules, session counting, duration-change reset. Exhaustive tests, including restore math and the expired-while-away case.
 2. Firestore persistence: explicit-action saves, `lastTickAt`, restore with elapsed subtraction, snapshot sync with the 3 s anti-jump rule.
 3. UI: tabs, SVG progress ring (1 s linear transition), dots, controls, loading skeleton, expanded variant.
