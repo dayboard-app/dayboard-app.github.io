@@ -1,0 +1,71 @@
+/*
+ * Placeholder styling for the Phase 0 holding page.
+ *
+ * Phase 1 replaces this with `tokens.css` carrying all twelve palettes (six accent
+ * themes x light and dark) plus the real stylesheet. Only the handful of coral
+ * values the holding page actually paints are defined here, so there is no
+ * half-finished token set to mistake for the real one.
+ */
+
+:root {
+  --background: 350 30% 97%;
+  --foreground: 350 25% 15%;
+  --muted-foreground: 350 12% 42%;
+  --primary: 350 91% 60%;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: 222 20% 10%;
+    --foreground: 210 20% 92%;
+    --muted-foreground: 215 15% 55%;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.shell h1 {
+  margin: 0;
+  font-size: 2.5rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: hsl(var(--primary));
+}
+
+.lead {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.status {
+  margin: 0.5rem 0 0;
+  font-size: 0.8125rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.route {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-weight: 500;
+  color: hsl(var(--foreground));
+}

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <!--
+      Pinch zoom is disabled to match the original, which sizes itself for a
+      phone and treats an accidental zoom as a broken layout rather than an
+      accessibility affordance. iOS Safari has ignored `user-scalable=no` since
+      iOS 10 and will always allow a deliberate pinch; that is not something a
+      page can take away, and it is not the case being prevented here.
+    -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <title>Dayboard</title>
+    <meta
+      name="description"
+      content="A distraction-free Pomodoro timer with a built-in to-do list to help you stay focused and productive."
+    />
+
+    <!-- Mirrors the coral theme's `--background` in each mode, so the browser
+         chrome on mobile matches the page instead of framing it. -->
+    <meta name="theme-color" content="#faf5f6" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#14171f" media="(prefers-color-scheme: dark)" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Dayboard" />
+    <meta
+      property="og:description"
+      content="A distraction-free Pomodoro timer with a built-in to-do list to help you stay focused and productive."
+    />
+    <meta property="og:image" content="https://dayboard-app.github.io/og-image.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <link rel="icon" href="favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="icon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="icon-16.png" />
+    <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png" />
+
+    <!--
+      Inter carries the interface and JetBrains Mono the clock and timer digits.
+      `display=swap` keeps text visible if fonts.gstatic.com is slow or blocked;
+      the stacks in the stylesheet are the fallback in that case.
+    -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&display=swap"
+    />
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="app.js"></script>
+  </body>
+</html>
