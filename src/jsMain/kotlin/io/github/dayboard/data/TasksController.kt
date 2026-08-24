@@ -6,12 +6,10 @@ import androidx.compose.runtime.setValue
 import io.github.dayboard.domain.model.Tag
 import io.github.dayboard.domain.model.Task
 import io.github.dayboard.domain.model.completedTasks
-import io.github.dayboard.domain.model.findByName
 import io.github.dayboard.domain.model.nextPosition
-import io.github.dayboard.domain.model.normalizeTagEmoji
 import io.github.dayboard.domain.model.normalizeTaskBody
 import io.github.dayboard.domain.model.pendingTasks
-import io.github.dayboard.domain.model.reorderSubtasks
+import io.github.dayboard.domain.model.reorderCompacting
 import io.github.dayboard.domain.model.reorderVisible
 import io.github.dayboard.domain.model.subtasksOf
 import io.github.dayboard.domain.model.taskTitleOrFallback
@@ -20,7 +18,6 @@ import io.github.dayboard.domain.model.withCompletionToggled
 import io.github.dayboard.domain.model.withPositions
 import io.github.dayboard.domain.model.withTaskRemoved
 import io.github.dayboard.domain.model.withTaskUpdated
-import io.github.dayboard.domain.repository.TagRepository
 import io.github.dayboard.domain.repository.TaskRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -33,6 +30,8 @@ import kotlinx.coroutines.launch
  * `:shared` and are tested; this owns the current value, the account, and the
  * writing.
  *
+ * Tags come from [TagsController], shared with the notes.
+ *
  * The filter and the set of expanded rows live here too, even though neither is
  * stored. They belong to the list rather than to the card that draws it: a collapsed
  * card takes its body out of the composition entirely, and holding them there would
@@ -40,19 +39,19 @@ import kotlinx.coroutines.launch
  */
 class TasksController(
     private val tasks: TaskRepository,
-    private val tags: TagRepository,
+    private val tags: TagsController,
     private val scope: CoroutineScope,
 ) {
 
     var allTasks: List<Task> by mutableStateOf(emptyList())
         private set
 
-    var allTags: List<Tag> by mutableStateOf(emptyList())
-        private set
-
-    /** True once both collections have arrived, or once we know they are empty. */
+    /** True once the tasks have arrived, or once we know there are none. */
     var loaded: Boolean by mutableStateOf(false)
         private set
+
+    /** The account's tags, shared with the notes. */
+    val allTags: List<Tag> get() = tags.all
 
     /** The tag being filtered by, or null for all of them. One at a time. */
     var filterTagId: String? by mutableStateOf(null)
@@ -62,9 +61,6 @@ class TasksController(
 
     private var uid: String? = null
     private var stopTasks: (() -> Unit)? = null
-    private var stopTags: (() -> Unit)? = null
-    private var tasksArrived = false
-    private var tagsArrived = false
 
     // ------------------------------------------------------------------ reading
 
@@ -86,7 +82,7 @@ class TasksController(
 
     // ----------------------------------------------------------------- following
 
-    /** Follows one account's tasks and tags. Safe to call repeatedly. */
+    /** Follows one account's tasks. Safe to call repeatedly. */
     fun start(uid: String) {
         if (this.uid == uid) return
 
@@ -95,29 +91,18 @@ class TasksController(
 
         stopTasks = tasks.observe(uid) { stored ->
             allTasks = stored
-            tasksArrived = true
-            updateLoaded()
-        }
-        stopTags = tags.observe(uid) { stored ->
-            allTags = stored
-            tagsArrived = true
-            updateLoaded()
+            loaded = true
         }
     }
 
     /** Detaches, and forgets the previous account's tasks. */
     fun stop() {
         stopTasks?.invoke()
-        stopTags?.invoke()
         stopTasks = null
-        stopTags = null
         uid = null
         allTasks = emptyList()
-        allTags = emptyList()
         filterTagId = null
         expandedIds = emptySet()
-        tasksArrived = false
-        tagsArrived = false
         loaded = false
     }
 
@@ -212,7 +197,7 @@ class TasksController(
 
     /** Commits a finished drag among one task's subtasks. */
     fun moveSubtask(parentId: String, fromIndex: Int, toIndex: Int) {
-        applyPositions(reorderSubtasks(allTasks.subtasksOf(parentId), fromIndex, toIndex))
+        applyPositions(reorderCompacting(allTasks.subtasksOf(parentId), fromIndex, toIndex))
     }
 
     // --------------------------------------------------------------------- tags
@@ -226,29 +211,15 @@ class TasksController(
     }
 
     /**
-     * Creates a tag and puts it on a task.
+     * Creates a tag and puts it on a task, or attaches one that already exists.
      *
-     * A name that already exists attaches the existing tag instead of making a
-     * second one. The user asked for a tag with that name and they get one, which is
-     * friendlier than an error - and it is what stops the list filling with "Work",
-     * "work" and "work ".
+     * The making of it belongs to [TagsController], which owns the vocabulary the
+     * notes share; all this decides is that the result goes on this task.
      */
     fun createTag(taskId: String, name: String, color: String, emoji: String?) {
-        val trimmed = name.trim().ifEmpty { return }
-        val account = uid ?: return
+        val tag = tags.createOrFind(name, color, emoji) ?: return
 
-        val existing = allTags.findByName(trimmed)
-        if (existing != null) {
-            if (existing.id !in (taskById(taskId)?.tagIds ?: emptyList())) {
-                toggleTag(taskId, existing.id)
-            }
-            return
-        }
-
-        val tag = Tag(id = newId(), name = trimmed, color = color, emoji = normalizeTagEmoji(emoji))
-        allTags = allTags + tag
-        scope.launch { tags.save(account, tag) }
-        toggleTag(taskId, tag.id)
+        if (tag.id !in (taskById(taskId)?.tagIds ?: emptyList())) toggleTag(taskId, tag.id)
     }
 
     // ------------------------------------------------------------------ private
@@ -268,10 +239,6 @@ class TasksController(
         allTasks = allTasks.withPositions(positions)
         val moved = allTasks.filter { it.id in positions }
         write(account) { saveAll(it, moved) }
-    }
-
-    private fun updateLoaded() {
-        loaded = tasksArrived && tagsArrived
     }
 
     private fun write(account: String, block: suspend TaskRepository.(String) -> Unit) {

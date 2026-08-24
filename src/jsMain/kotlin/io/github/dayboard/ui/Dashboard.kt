@@ -10,6 +10,7 @@ import androidx.compose.runtime.setValue
 import io.github.dayboard.data.ClockController
 import io.github.dayboard.data.DragController
 import io.github.dayboard.data.ListDragController
+import io.github.dayboard.data.NotesController
 import io.github.dayboard.data.SettingsController
 import io.github.dayboard.data.TasksController
 import io.github.dayboard.data.TimerController
@@ -17,8 +18,11 @@ import io.github.dayboard.data.WeatherController
 import io.github.dayboard.domain.model.BoardColumn
 import io.github.dayboard.domain.model.CardId
 import io.github.dayboard.ui.cards.ClockCard
+import io.github.dayboard.ui.cards.NotesCard
 import io.github.dayboard.ui.cards.TasksCard
 import io.github.dayboard.ui.cards.TimerCard
+import io.github.dayboard.ui.dialogs.NoteEditDialog
+import io.github.dayboard.ui.dialogs.NoteViewDialog
 import io.github.dayboard.ui.dialogs.TaskEditDialog
 import io.github.dayboard.ui.dialogs.TaskViewDialog
 import io.github.dayboard.ui.components.Card
@@ -47,6 +51,7 @@ fun Dashboard(
     weather: WeatherController,
     timer: TimerController,
     tasks: TasksController,
+    notes: NotesController,
     drag: DragController,
     listDrag: ListDragController,
     onSignOut: () -> Unit,
@@ -57,6 +62,8 @@ fun Dashboard(
     // the card behind an open dialog cannot take the dialog with it.
     var editingTaskId: String? by remember { mutableStateOf(null) }
     var viewingTaskId: String? by remember { mutableStateOf(null) }
+    var editingNoteId: String? by remember { mutableStateOf(null) }
+    var viewingNoteId: String? by remember { mutableStateOf(null) }
     val layout = settings.settings.cardLayout
 
     val visibleLeft = layout.left.filter(settings.settings::isVisible)
@@ -87,12 +94,15 @@ fun Dashboard(
                     weather = weather,
                     timer = timer,
                     tasks = tasks,
+                    notes = notes,
                     listDrag = listDrag,
                     drag = drag,
                     draggable = false,
                     onExpand = { expanded = CardId.Clock },
                     onEditTask = { editingTaskId = it },
                     onViewTask = { viewingTaskId = it },
+                    onEditNote = { editingNoteId = it },
+                    onViewNote = { viewingNoteId = it },
                 )
 
                 Div({ classes("board__columns") }) {
@@ -104,11 +114,14 @@ fun Dashboard(
                         weather = weather,
                         timer = timer,
                         tasks = tasks,
+                        notes = notes,
                         listDrag = listDrag,
                         drag = drag,
                         onExpand = { expanded = it },
                         onEditTask = { editingTaskId = it },
                         onViewTask = { viewingTaskId = it },
+                        onEditNote = { editingNoteId = it },
+                        onViewNote = { viewingNoteId = it },
                     )
                     BoardColumnView(
                         column = BoardColumn.Right,
@@ -118,11 +131,14 @@ fun Dashboard(
                         weather = weather,
                         timer = timer,
                         tasks = tasks,
+                        notes = notes,
                         listDrag = listDrag,
                         drag = drag,
                         onExpand = { expanded = it },
                         onEditTask = { editingTaskId = it },
                         onViewTask = { viewingTaskId = it },
+                        onEditNote = { editingNoteId = it },
+                        onViewNote = { viewingNoteId = it },
                     )
                 }
             }
@@ -153,6 +169,22 @@ fun Dashboard(
         )
     }
 
+    editingNoteId?.let { id ->
+        NoteEditDialog(noteId = id, notes = notes, onDismiss = { editingNoteId = null })
+    }
+
+    viewingNoteId?.let { id ->
+        NoteViewDialog(
+            noteId = id,
+            notes = notes,
+            onEdit = {
+                viewingNoteId = null
+                editingNoteId = id
+            },
+            onDismiss = { viewingNoteId = null },
+        )
+    }
+
     expanded?.let { card ->
         // The backdrop is a sibling of the card rather than its parent, so a click
         // on the card cannot bubble out and close it.
@@ -176,9 +208,12 @@ fun Dashboard(
                     weather = weather,
                     timer = timer,
                     tasks = tasks,
+                    notes = notes,
                     listDrag = listDrag,
                     onEditTask = { editingTaskId = it },
                     onViewTask = { viewingTaskId = it },
+                    onEditNote = { editingNoteId = it },
+                    onViewNote = { viewingNoteId = it },
                 )
             }
         }
@@ -215,11 +250,14 @@ private fun BoardColumnView(
     weather: WeatherController,
     timer: TimerController,
     tasks: TasksController,
+    notes: NotesController,
     listDrag: ListDragController,
     drag: DragController,
     onExpand: (CardId) -> Unit,
     onEditTask: (String) -> Unit,
     onViewTask: (String) -> Unit,
+    onEditNote: (String) -> Unit,
+    onViewNote: (String) -> Unit,
 ) {
     val isTarget = drag.drag != null && drag.target?.column == column
 
@@ -244,6 +282,7 @@ private fun BoardColumnView(
                     weather = weather,
                     timer = timer,
                     tasks = tasks,
+                    notes = notes,
                     listDrag = listDrag,
                     drag = drag,
                     column = column,
@@ -251,6 +290,8 @@ private fun BoardColumnView(
                     onExpand = { onExpand(card) },
                     onEditTask = onEditTask,
                     onViewTask = onViewTask,
+                    onEditNote = onEditNote,
+                    onViewNote = onViewNote,
                 )
             }
         }
@@ -265,6 +306,7 @@ private fun BoardCard(
     weather: WeatherController,
     timer: TimerController,
     tasks: TasksController,
+    notes: NotesController,
     listDrag: ListDragController,
     drag: DragController,
     column: BoardColumn = BoardColumn.Left,
@@ -273,6 +315,8 @@ private fun BoardCard(
     onExpand: () -> Unit,
     onEditTask: (String) -> Unit,
     onViewTask: (String) -> Unit,
+    onEditNote: (String) -> Unit,
+    onViewNote: (String) -> Unit,
 ) {
     val dragging = drag.isDragging(card.id)
 
@@ -306,9 +350,12 @@ private fun BoardCard(
                 weather = weather,
                 timer = timer,
                 tasks = tasks,
+                notes = notes,
                 listDrag = listDrag,
                 onEditTask = onEditTask,
                 onViewTask = onViewTask,
+                onEditNote = onEditNote,
+                onViewNote = onViewNote,
             )
         }
     }
@@ -329,9 +376,12 @@ private fun CardBody(
     weather: WeatherController,
     timer: TimerController,
     tasks: TasksController,
+    notes: NotesController,
     listDrag: ListDragController,
     onEditTask: (String) -> Unit,
     onViewTask: (String) -> Unit,
+    onEditNote: (String) -> Unit,
+    onViewNote: (String) -> Unit,
 ) {
     when (card) {
         CardId.Clock -> ClockCard(
@@ -359,7 +409,13 @@ private fun CardBody(
             onEditTask = onEditTask,
             onViewTask = onViewTask,
         )
-        CardId.Notes -> Placeholder("Notes arrive after tasks.")
+        CardId.Notes -> NotesCard(
+            notes = notes,
+            drag = listDrag,
+            expanded = expanded,
+            onEditNote = onEditNote,
+            onViewNote = onViewNote,
+        )
     }
 }
 

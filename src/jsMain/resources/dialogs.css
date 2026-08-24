@@ -259,3 +259,25 @@
   display: flex;
   justify-content: flex-end;
 }
+
+/* ----- note viewer ----- */
+
+/* A note's title is its own text rather than a heading over other content, so it
+   sits a size below the task viewer's. */
+.viewer__title--note {
+  font-size: 1rem;
+}
+
+/* Keeps a short note from collapsing the dialog to a couple of lines. */
+.viewer__body--note {
+  min-height: 6rem;
+}
+
+.viewer__empty {
+  margin: 0;
+  padding: 1rem 0;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+  font-style: italic;
+  text-align: center;
+}
