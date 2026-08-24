@@ -80,7 +80,9 @@ class DragController {
         this.onDrop = onDrop
 
         val move: (Event) -> Unit = { event ->
-            (event as? PointerEvent)?.let { target = hitTest(it.clientX.toDouble(), it.clientY.toDouble()) }
+            (event as? PointerEvent)?.let {
+                target = hitTest(it.clientX.toDouble(), it.clientY.toDouble())
+            }
         }
         val end: (Event) -> Unit = { finish() }
 

@@ -17,7 +17,10 @@ external fun getAuth(app: FirebaseApp): Auth
  * Returns the unsubscribe function. It is a real callable rather than an opaque
  * handle, so a caller that outlives the listener can detach it.
  */
-external fun onAuthStateChanged(auth: Auth, nextOrObserver: (user: FirebaseUser?) -> Unit): () -> Unit
+external fun onAuthStateChanged(
+    auth: Auth,
+    nextOrObserver: (user: FirebaseUser?) -> Unit,
+): () -> Unit
 
 external fun signInWithEmailAndPassword(
     auth: Auth,

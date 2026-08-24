@@ -101,7 +101,10 @@ fun CardLayout.moveCard(
     val dragged = column(from).filter(isVisible).getOrNull(sourceIndex) ?: return this
 
     return if (from == to) {
-        withColumn(from, column(from).reorderedWithin(dragged, sourceIndex, destinationIndex, isVisible))
+        withColumn(
+            from,
+            column(from).reorderedWithin(dragged, sourceIndex, destinationIndex, isVisible),
+        )
     } else {
         val target = column(to).filter(isVisible).getOrNull(destinationIndex)
         val destination = column(to).let { cards ->

@@ -32,7 +32,9 @@ class AuthUserTest {
     fun authFailure_mentionsTheCodeInItsMessage() {
         // The message is only ever read in a log or a stack trace, so it has to
         // name the code; the user-facing sentence comes from AuthMessages instead.
-        assertTrue(AuthFailure("auth/weak-password").message.orEmpty().contains("auth/weak-password"))
+        val message = AuthFailure("auth/weak-password").message.orEmpty()
+
+        assertTrue(message.contains("auth/weak-password"))
     }
 
     @Test

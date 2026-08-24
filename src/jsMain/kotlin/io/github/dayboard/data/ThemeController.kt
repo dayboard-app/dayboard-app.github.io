@@ -25,7 +25,9 @@ class ThemeController {
 
     private val darkQuery = window.matchMedia(DARK_MEDIA_QUERY)
 
-    var themeId: ThemeId by mutableStateOf(ThemeId.fromId(window.localStorage.getItem(KEY_THEME_ID)))
+    var themeId: ThemeId by mutableStateOf(
+        ThemeId.fromId(window.localStorage.getItem(KEY_THEME_ID)),
+    )
         private set
 
     var colorMode: ColorMode by mutableStateOf(
