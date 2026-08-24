@@ -32,35 +32,36 @@ fun <T> List<T>.moved(fromIndex: Int, toIndex: Int): List<T> {
  * Returns only the tasks whose position actually changed, so a drag that ends where
  * it started writes nothing.
  */
-fun reorderVisible(visible: List<Task>, fromIndex: Int, toIndex: Int): Map<String, Int> {
+fun reorderVisible(visible: List<Positioned>, fromIndex: Int, toIndex: Int): Map<String, Int> {
     val reordered = visible.moved(fromIndex, toIndex)
     if (reordered === visible) return emptyMap()
 
     val pool = visible.map { it.position }.sorted()
 
     return reordered
-        .mapIndexedNotNull { index, task ->
-            pool[index].takeIf { it != task.position }?.let { task.id to it }
+        .mapIndexedNotNull { index, item ->
+            pool[index].takeIf { it != item.position }?.let { item.id to it }
         }
         .toMap()
 }
 
 /**
- * Reorders subtasks and renumbers them 0, 1, 2 and so on.
+ * Reorders a list and renumbers it 0, 1, 2 and so on.
  *
- * Subtasks can afford what top-level tasks cannot: there is no filter over them and
- * no separate finished group, so the list being dragged is the whole list and
- * compacting cannot collide with anything. It also keeps the numbers tidy, which
- * matters because subtasks are added and deleted far more freely than tasks are.
+ * Only safe when the list being dragged is the *whole* list, which is true of
+ * subtasks: nothing filters them and there is no separate finished group, so
+ * compacting cannot collide with a position held by something off screen. It also
+ * keeps the numbers tidy, which matters for something added and deleted as freely
+ * as a subtask.
  *
  * Returns only what changed, so a drag that ends where it started writes nothing.
  */
-fun reorderSubtasks(subtasks: List<Task>, fromIndex: Int, toIndex: Int): Map<String, Int> {
-    val reordered = subtasks.moved(fromIndex, toIndex)
-    if (reordered === subtasks) return emptyMap()
+fun reorderCompacting(items: List<Positioned>, fromIndex: Int, toIndex: Int): Map<String, Int> {
+    val reordered = items.moved(fromIndex, toIndex)
+    if (reordered === items) return emptyMap()
 
     return reordered
-        .mapIndexedNotNull { index, task -> (task.id to index).takeIf { task.position != index } }
+        .mapIndexedNotNull { index, item -> (item.id to index).takeIf { item.position != index } }
         .toMap()
 }
 

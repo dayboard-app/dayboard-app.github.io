@@ -13,14 +13,14 @@ package io.github.dayboard.domain.model
  * so they may be sparse; nothing may assume they run 0, 1, 2.
  */
 data class Task(
-    val id: String,
+    override val id: String,
     val text: String,
     val body: String? = null,
     val done: Boolean = false,
-    val position: Int = 0,
+    override val position: Int = 0,
     val parentId: String? = null,
     val tagIds: List<String> = emptyList(),
-) {
+) : Positioned {
 
     /** True for a task that sits in the list, false for one that sits under another. */
     val isTopLevel: Boolean get() = parentId == null

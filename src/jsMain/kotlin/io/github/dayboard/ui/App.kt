@@ -6,8 +6,10 @@ import io.github.dayboard.data.AuthController
 import io.github.dayboard.data.ClockController
 import io.github.dayboard.data.DragController
 import io.github.dayboard.data.ListDragController
+import io.github.dayboard.data.NotesController
 import io.github.dayboard.data.Router
 import io.github.dayboard.data.SettingsController
+import io.github.dayboard.data.TagsController
 import io.github.dayboard.data.TasksController
 import io.github.dayboard.data.TimerController
 import io.github.dayboard.data.WeatherController
@@ -32,6 +34,8 @@ fun App(
     weather: WeatherController,
     timer: TimerController,
     tasks: TasksController,
+    notes: NotesController,
+    tags: TagsController,
     drag: DragController,
     listDrag: ListDragController,
 ) {
@@ -43,12 +47,16 @@ fun App(
             is AuthState.SignedIn -> {
                 settings.start(state.user.uid)
                 tasks.start(state.user.uid)
+                notes.start(state.user.uid)
+                tags.start(state.user.uid)
             }
 
             AuthState.SignedOut -> {
                 settings.stop()
                 timer.stop()
                 tasks.stop()
+                notes.stop()
+                tags.stop()
             }
             AuthState.Loading -> Unit
         }
@@ -107,6 +115,7 @@ fun App(
                         weather = weather,
                         timer = timer,
                         tasks = tasks,
+                        notes = notes,
                         drag = drag,
                         listDrag = listDrag,
                         onSignOut = auth::signOut,

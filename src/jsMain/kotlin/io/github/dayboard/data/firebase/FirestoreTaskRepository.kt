@@ -118,7 +118,7 @@ private fun readTask(document: QueryDocumentSnapshot): Task {
         done = data["done"] as? Boolean ?: false,
         position = (data["position"] as? Number)?.toInt() ?: 0,
         parentId = data["parentId"] as? String,
-        tagIds = stringArray(data["tagIds"]),
+        tagIds = storedStringArray(data["tagIds"]),
     )
 }
 
@@ -170,13 +170,6 @@ private fun tagDocument(tag: Tag): dynamic {
     // later. A few seconds of clock skew cannot reorder a list of tags noticeably.
     document["createdAt"] = kotlin.js.Date.now()
     return document
-}
-
-/** Reads a stored array of strings, ignoring anything in it that is not one. */
-private fun stringArray(value: dynamic): List<String> {
-    if (value == null || !(js("Array.isArray")(value) as Boolean)) return emptyList()
-
-    return value.unsafeCast<Array<dynamic>>().mapNotNull { it as? String }
 }
 
 /** Used only for a stored tag whose colour is missing or not a string. */

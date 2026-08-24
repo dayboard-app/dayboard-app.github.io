@@ -38,3 +38,15 @@ private fun objectKeys(value: dynamic): Array<String> =
 
 /** Builds an empty JS object to fill in, since Kotlin has no object literal. */
 internal fun jsObject(): dynamic = js("{}")
+
+/**
+ * Reads a stored array of strings, ignoring anything in it that is not one.
+ *
+ * Both the task and the note documents carry a `tagIds` array, and both have to
+ * survive a document that holds something else there.
+ */
+internal fun storedStringArray(value: dynamic): List<String> {
+    if (value == null || !(js("Array.isArray")(value) as Boolean)) return emptyList()
+
+    return value.unsafeCast<Array<dynamic>>().mapNotNull { it as? String }
+}

@@ -4,8 +4,10 @@ import io.github.dayboard.data.AuthController
 import io.github.dayboard.data.ClockController
 import io.github.dayboard.data.DragController
 import io.github.dayboard.data.ListDragController
+import io.github.dayboard.data.NotesController
 import io.github.dayboard.data.Router
 import io.github.dayboard.data.SettingsController
+import io.github.dayboard.data.TagsController
 import io.github.dayboard.data.TasksController
 import io.github.dayboard.data.ThemeController
 import io.github.dayboard.data.TimerController
@@ -13,6 +15,7 @@ import io.github.dayboard.data.WeatherController
 import io.github.dayboard.data.firebase.FirebaseAuthRepository
 import io.github.dayboard.data.audio.WebAudioChime
 import io.github.dayboard.data.firebase.FirestoreSettingsRepository
+import io.github.dayboard.data.firebase.FirestoreNoteRepository
 import io.github.dayboard.data.firebase.FirestoreTagRepository
 import io.github.dayboard.data.firebase.FirestoreTaskRepository
 import io.github.dayboard.data.firebase.FirestoreTimerRepository
@@ -48,9 +51,17 @@ fun main() {
         chime = WebAudioChime(),
         scope = scope,
     )
+    // One tag vocabulary, shared: a tag made on a note is available to a task at
+    // once, and one listener means no update can be lost to its own echo.
+    val tags = TagsController(repository = FirestoreTagRepository(), scope = scope)
     val tasks = TasksController(
         tasks = FirestoreTaskRepository(),
-        tags = FirestoreTagRepository(),
+        tags = tags,
+        scope = scope,
+    )
+    val notes = NotesController(
+        notes = FirestoreNoteRepository(),
+        tags = tags,
         scope = scope,
     )
     val drag = DragController()
@@ -73,6 +84,8 @@ fun main() {
             weather = weather,
             timer = timer,
             tasks = tasks,
+            notes = notes,
+            tags = tags,
             drag = drag,
             listDrag = listDrag,
         )

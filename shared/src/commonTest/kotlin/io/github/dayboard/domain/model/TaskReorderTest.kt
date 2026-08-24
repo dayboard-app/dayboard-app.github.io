@@ -123,7 +123,7 @@ class TaskReorderTest {
             task("a3", position = 2, parentId = "a"),
         )
 
-        assertEquals(mapOf("a3" to 0, "a1" to 1, "a2" to 2), reorderSubtasks(subtasks, 2, 0))
+        assertEquals(mapOf("a3" to 0, "a1" to 1, "a2" to 2), reorderCompacting(subtasks, 2, 0))
     }
 
     @Test
@@ -136,7 +136,7 @@ class TaskReorderTest {
             task("a3", position = 9, parentId = "a"),
         )
 
-        val after = subtasks.withPositions(reorderSubtasks(subtasks, 0, 1))
+        val after = subtasks.withPositions(reorderCompacting(subtasks, 0, 1))
 
         assertEquals(listOf(0, 1, 2), after.map { it.position }.sorted())
         assertEquals(listOf("a2", "a1", "a3"), after.sortedBy { it.position }.map { it.id })
@@ -151,8 +151,8 @@ class TaskReorderTest {
         )
 
         // Swapping the last two leaves the first where it is.
-        assertEquals(mapOf("a3" to 1, "a2" to 2), reorderSubtasks(subtasks, 1, 2))
-        assertEquals(emptyMap(), reorderSubtasks(subtasks, 1, 1))
+        assertEquals(mapOf("a3" to 1, "a2" to 2), reorderCompacting(subtasks, 1, 2))
+        assertEquals(emptyMap(), reorderCompacting(subtasks, 1, 1))
     }
 
     // --------------------------------------------------------------- applying
