@@ -30,13 +30,34 @@ fun Card(
     centerContent: Boolean = false,
     onToggleCollapsed: (() -> Unit)? = null,
     onToggleExpanded: (() -> Unit)? = null,
+    onDragStart: (() -> Unit)? = null,
     content: ContentBuilder<HTMLDivElement>,
 ) {
     Div({ classes("card") }) {
         Div({ classes("card__header") }) {
             Div({ classes("card__title-group") }) {
                 if (draggable && !expanded) {
-                    Span({ classes("card__grip") }) {
+                    Span({
+                        classes("card__grip")
+                        onDragStart?.let { start ->
+                            // Left button only: a right-click on the handle should
+                            // open a context menu, not begin a drag the user cannot
+                            // see themselves having started.
+                            onMouseDown { event ->
+                                if (event.button.toInt() == 0) {
+                                    event.preventDefault()
+                                    start()
+                                }
+                            }
+                            // Touch reports no button, and the default here is the
+                            // page scrolling under the finger instead of the card
+                            // following it.
+                            onTouchStart { event ->
+                                event.preventDefault()
+                                start()
+                            }
+                        }
+                    }) {
                         Icon(LucideIcon.GripVertical, size = 16)
                     }
                 }

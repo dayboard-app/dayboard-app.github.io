@@ -4,7 +4,9 @@ import io.github.dayboard.data.firebase.externals.ActionCodeSettings
 import io.github.dayboard.data.firebase.externals.Auth
 import io.github.dayboard.data.firebase.externals.FirebaseApp
 import io.github.dayboard.data.firebase.externals.FirebaseOptions
+import io.github.dayboard.data.firebase.externals.Firestore
 import io.github.dayboard.data.firebase.externals.getAuth
+import io.github.dayboard.data.firebase.externals.getFirestore
 import io.github.dayboard.data.firebase.externals.initializeApp
 import io.github.dayboard.di.FirebaseConfig
 
@@ -31,6 +33,8 @@ object Firebase {
     }
 
     val auth: Auth by lazy { getAuth(app) }
+
+    val firestore: Firestore by lazy { getFirestore(app) }
 }
 
 /**

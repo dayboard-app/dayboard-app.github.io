@@ -154,3 +154,157 @@
   width: 0.75rem;
   border-radius: 9999px;
 }
+
+/* ------------------------------------------------------------- the board ---- */
+
+.header {
+  border-bottom: 1px solid hsl(var(--border));
+  padding: 1rem 1.5rem;
+}
+
+.header__inner {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 64rem;
+  margin: 0 auto;
+}
+
+.header__title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.header__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+}
+
+/* Hidden on a narrow screen, where the address would push the controls off. */
+.header__email {
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+}
+
+@media (max-width: 640px) {
+  .header__email {
+    display: none;
+  }
+}
+
+.header__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.25rem;
+  width: 2.25rem;
+  border: 0;
+  border-radius: var(--radius);
+  background: none;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.header__button:hover {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
+
+.board {
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* One column on a phone, two side by side from the tablet breakpoint up. */
+.board__columns {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .board__columns {
+    flex-direction: row;
+  }
+}
+
+.board__column {
+  flex: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  min-height: 5rem;
+  border-radius: calc(var(--radius) + 4px);
+  transition: background-color 150ms ease;
+}
+
+/* Tints the column a drop would land in, so the target is obvious mid-drag. */
+.board__column--target {
+  background-color: hsl(var(--primary) / 0.05);
+  box-shadow: inset 0 0 0 2px hsl(var(--primary) / 0.1);
+}
+
+.board__empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 0;
+  border: 2px dashed hsl(var(--border) / 0.4);
+  border-radius: calc(var(--radius) + 4px);
+  color: hsl(var(--muted-foreground) / 0.4);
+  font-size: 0.75rem;
+}
+
+.board__slot {
+  transition: opacity 150ms ease;
+}
+
+/* The card being dragged stays in place and dims, rather than following the
+   cursor: the columns show where it would land, so a floating copy would be a
+   second thing to track. */
+.board__slot--dragging {
+  opacity: 0.5;
+}
+
+.board__slot--dragging .card {
+  box-shadow:
+    0 10px 15px -3px rgb(0 0 0 / 0.1),
+    0 4px 6px -4px rgb(0 0 0 / 0.1);
+  outline: 2px solid hsl(var(--primary) / 0.2);
+}
+
+/* ---------------------------------------------------------------- expanded -- */
+
+.expanded__backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background-color: hsl(var(--background) / 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.expanded {
+  position: fixed;
+  inset: 1rem;
+  z-index: 40;
+  display: flex;
+}
+
+.expanded > .card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
