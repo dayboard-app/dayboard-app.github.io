@@ -1,9 +1,12 @@
 package io.github.dayboard
 
 import io.github.dayboard.data.AuthController
+import io.github.dayboard.data.DragController
 import io.github.dayboard.data.Router
+import io.github.dayboard.data.SettingsController
 import io.github.dayboard.data.ThemeController
 import io.github.dayboard.data.firebase.FirebaseAuthRepository
+import io.github.dayboard.data.firebase.FirestoreSettingsRepository
 import io.github.dayboard.ui.App
 import kotlinx.coroutines.MainScope
 import org.jetbrains.compose.web.renderComposable
@@ -15,25 +18,26 @@ import org.jetbrains.compose.web.renderComposable
  * starts the pieces that watch the browser, and gives the whole thing to the
  * composition. Nothing else calls a constructor.
  *
- * The three `start()` calls happen before the first composition so the palette,
- * the address and the session are all settled before anything paints. Without
- * that, a signed-in user would see the sign-in page for a frame.
+ * The theme, the router and the session all start before the first composition so
+ * the palette, the address and the account are settled before anything paints.
+ * Settings start later, because they belong to an account rather than to the page.
  */
 fun main() {
+    // Outlives every screen: a write that is still in flight when the route changes
+    // must still finish.
+    val scope = MainScope()
+
     val theme = ThemeController()
     val router = Router()
-    val auth = AuthController(
-        repository = FirebaseAuthRepository(),
-        // Outlives every screen: a sign-in that is still in flight when the route
-        // changes must still finish and report.
-        scope = MainScope(),
-    )
+    val auth = AuthController(repository = FirebaseAuthRepository(), scope = scope)
+    val settings = SettingsController(repository = FirestoreSettingsRepository(), scope = scope)
+    val drag = DragController()
 
     theme.start()
     router.start()
     auth.start()
 
     renderComposable(rootElementId = "root") {
-        App(auth = auth, router = router, theme = theme)
+        App(auth = auth, router = router, settings = settings, drag = drag)
     }
 }

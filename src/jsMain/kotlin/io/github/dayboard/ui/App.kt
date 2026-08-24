@@ -3,8 +3,9 @@ package io.github.dayboard.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import io.github.dayboard.data.AuthController
+import io.github.dayboard.data.DragController
 import io.github.dayboard.data.Router
-import io.github.dayboard.data.ThemeController
+import io.github.dayboard.data.SettingsController
 import io.github.dayboard.domain.model.AuthState
 import io.github.dayboard.presentation.Destination
 import io.github.dayboard.presentation.Route
@@ -18,7 +19,23 @@ import io.github.dayboard.presentation.resolveDestination
  * a change to a screen.
  */
 @Composable
-fun App(auth: AuthController, router: Router, theme: ThemeController) {
+fun App(
+    auth: AuthController,
+    router: Router,
+    settings: SettingsController,
+    drag: DragController,
+) {
+    // The settings document belongs to an account, so the listener follows the
+    // session rather than the screen: attaching it in the dashboard would drop it
+    // every time the user looked at another route.
+    LaunchedEffect(auth.state) {
+        when (val state = auth.state) {
+            is AuthState.SignedIn -> settings.start(state.user.uid)
+            AuthState.SignedOut -> settings.stop()
+            AuthState.Loading -> Unit
+        }
+    }
+
     when (val destination = resolveDestination(auth.state, router.route)) {
         Destination.Pending -> PendingScreen()
 
@@ -47,11 +64,18 @@ fun App(auth: AuthController, router: Router, theme: ThemeController) {
 
             Route.Dashboard -> {
                 val signedIn = auth.state as? AuthState.SignedIn
-                DashboardPlaceholder(
-                    email = signedIn?.user?.email.orEmpty(),
-                    theme = theme,
-                    onSignOut = auth::signOut,
-                )
+                // The board waits for the stored layout rather than drawing the
+                // default and rearranging itself a moment later.
+                if (signedIn == null || !settings.loaded) {
+                    PendingScreen()
+                } else {
+                    Dashboard(
+                        email = signedIn.user.email,
+                        settings = settings,
+                        drag = drag,
+                        onSignOut = auth::signOut,
+                    )
+                }
             }
 
             Route.NotFound -> NotFoundScreen(onHome = { router.navigate(Route.Dashboard) })

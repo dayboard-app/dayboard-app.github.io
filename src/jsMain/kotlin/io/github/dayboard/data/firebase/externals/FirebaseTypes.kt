@@ -50,3 +50,37 @@ external interface UserCredential {
 external interface ActionCodeSettings {
     var url: String
 }
+
+// ------------------------------------------------------------------ firestore
+
+external interface Firestore
+
+external interface DocumentReference
+
+external interface DocumentSnapshot {
+    fun exists(): Boolean
+
+    /** The stored fields, as a plain JS object. */
+    fun data(): dynamic
+
+    val metadata: SnapshotMetadata
+}
+
+external interface SnapshotMetadata {
+    /**
+     * True while this device's own write is still on its way to the server.
+     *
+     * Firestore echoes a local write back to its own listener immediately, before
+     * the server has confirmed it. Without this flag those echoes are
+     * indistinguishable from another device's change, and applying them would
+     * fight whatever the user is currently editing.
+     */
+    val hasPendingWrites: Boolean
+
+    /**
+     * True when the snapshot was served from the local cache rather than the
+     * server, which is the only way to tell "there is nothing" from "we never got
+     * through": Firestore resolves an offline read instead of failing it.
+     */
+    val fromCache: Boolean
+}
