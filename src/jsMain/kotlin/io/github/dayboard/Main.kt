@@ -5,6 +5,7 @@ import io.github.dayboard.data.ClockController
 import io.github.dayboard.data.DragController
 import io.github.dayboard.data.ListDragController
 import io.github.dayboard.data.NotesController
+import io.github.dayboard.data.NotificationController
 import io.github.dayboard.data.Router
 import io.github.dayboard.data.SettingsController
 import io.github.dayboard.data.TagsController
@@ -19,6 +20,7 @@ import io.github.dayboard.data.firebase.FirestoreNoteRepository
 import io.github.dayboard.data.firebase.FirestoreTagRepository
 import io.github.dayboard.data.firebase.FirestoreTaskRepository
 import io.github.dayboard.data.firebase.FirestoreTimerRepository
+import io.github.dayboard.domain.model.timerEndNotification
 import io.github.dayboard.data.weather.OpenMeteoWeatherRepository
 import io.github.dayboard.ui.App
 import kotlinx.coroutines.MainScope
@@ -64,8 +66,13 @@ fun main() {
         tags = tags,
         scope = scope,
     )
+    val notifications = NotificationController(scope = scope)
     val drag = DragController()
     val listDrag = ListDragController()
+
+    // A stretch ending is the one thing worth interrupting for, and the timer knows
+    // nothing about notifications - it reports what ended and this decides the rest.
+    timer.onCompleted = { ended -> notifications.show(timerEndNotification(ended)) }
 
     theme.start()
     router.start()
@@ -74,6 +81,10 @@ fun main() {
     // start. The weather does not: it waits for the settings that say whether it is
     // wanted at all, and the board starts it.
     clock.start()
+    // Registers the worker again if permission was given on a previous visit: the
+    // browser remembers the permission, nothing here does, and without this every
+    // reload would look as though notifications had been turned off.
+    notifications.start()
 
     renderComposable(rootElementId = "root") {
         App(
@@ -87,6 +98,7 @@ fun main() {
             notes = notes,
             tags = tags,
             theme = theme,
+            notifications = notifications,
             drag = drag,
             listDrag = listDrag,
         )

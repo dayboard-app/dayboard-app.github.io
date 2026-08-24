@@ -11,6 +11,7 @@ import io.github.dayboard.data.ClockController
 import io.github.dayboard.data.DragController
 import io.github.dayboard.data.ListDragController
 import io.github.dayboard.data.NotesController
+import io.github.dayboard.data.NotificationController
 import io.github.dayboard.data.SettingsController
 import io.github.dayboard.data.TagsController
 import io.github.dayboard.data.TasksController
@@ -56,6 +57,7 @@ fun Dashboard(
     notes: NotesController,
     tags: TagsController,
     theme: ThemeController,
+    notifications: NotificationController,
     drag: DragController,
     listDrag: ListDragController,
     onSignOut: () -> Unit,
@@ -179,6 +181,7 @@ fun Dashboard(
             settings = settings,
             theme = theme,
             tags = tags,
+            notifications = notifications,
             // Deleting a tag has to reach three places: the tag itself, and every
             // task and note carrying it. Coordinated here because this is where the
             // three meet; a list left holding an id that matches no tag is invisible

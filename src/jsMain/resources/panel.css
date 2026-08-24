@@ -378,3 +378,40 @@
   background-color: hsl(var(--destructive) / 0.1);
   color: hsl(var(--destructive));
 }
+
+/* ----- notifications ----- */
+
+.panel__enable-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  background-color: transparent;
+  color: hsl(var(--foreground));
+  font-family: inherit;
+  font-size: 0.8125rem;
+  cursor: pointer;
+  transition: background-color 150ms ease;
+}
+
+.panel__enable-button:hover {
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+/* Static, not a control: once the browser has granted permission there is nothing
+   here left to press. */
+.panel__enabled {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  background-color: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+  font-size: 0.8125rem;
+  font-weight: 500;
+}

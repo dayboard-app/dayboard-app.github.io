@@ -7,6 +7,7 @@ import io.github.dayboard.data.ClockController
 import io.github.dayboard.data.DragController
 import io.github.dayboard.data.ListDragController
 import io.github.dayboard.data.NotesController
+import io.github.dayboard.data.NotificationController
 import io.github.dayboard.data.Router
 import io.github.dayboard.data.SettingsController
 import io.github.dayboard.data.ThemeController
@@ -38,6 +39,7 @@ fun App(
     notes: NotesController,
     tags: TagsController,
     theme: ThemeController,
+    notifications: NotificationController,
     drag: DragController,
     listDrag: ListDragController,
 ) {
@@ -132,6 +134,7 @@ fun App(
                         notes = notes,
                         tags = tags,
                         theme = theme,
+                        notifications = notifications,
                         drag = drag,
                         listDrag = listDrag,
                         onSignOut = auth::signOut,
