@@ -6,9 +6,12 @@ import io.github.dayboard.data.DragController
 import io.github.dayboard.data.Router
 import io.github.dayboard.data.SettingsController
 import io.github.dayboard.data.ThemeController
+import io.github.dayboard.data.TimerController
 import io.github.dayboard.data.WeatherController
 import io.github.dayboard.data.firebase.FirebaseAuthRepository
+import io.github.dayboard.data.audio.WebAudioChime
 import io.github.dayboard.data.firebase.FirestoreSettingsRepository
+import io.github.dayboard.data.firebase.FirestoreTimerRepository
 import io.github.dayboard.data.weather.OpenMeteoWeatherRepository
 import io.github.dayboard.ui.App
 import kotlinx.coroutines.MainScope
@@ -36,6 +39,11 @@ fun main() {
     val settings = SettingsController(repository = FirestoreSettingsRepository(), scope = scope)
     val clock = ClockController(scope = scope)
     val weather = WeatherController(repository = OpenMeteoWeatherRepository(), scope = scope)
+    val timer = TimerController(
+        repository = FirestoreTimerRepository(),
+        chime = WebAudioChime(),
+        scope = scope,
+    )
     val drag = DragController()
 
     theme.start()
@@ -53,6 +61,7 @@ fun main() {
             settings = settings,
             clock = clock,
             weather = weather,
+            timer = timer,
             drag = drag,
         )
     }

@@ -90,10 +90,6 @@ private fun LoadingWeatherPill() {
     }
 }
 
-/** Adds the `--expanded` modifier to a block's class, for the full-screen card. */
-private fun sized(block: String, expanded: Boolean): Array<String> =
-    if (expanded) arrayOf(block, "$block--expanded") else arrayOf(block)
-
 /**
  * The picture for a condition.
  *
