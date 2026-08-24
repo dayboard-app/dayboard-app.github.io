@@ -44,6 +44,10 @@ kotlin {
                 // inputs and scrollbars rather than approximating them on a canvas.
                 implementation("org.jetbrains.compose.html:html-core:1.11.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
+                // npm dependencies are only legal in a Kotlin/JS source set, and the
+                // `@JsModule` externals that use this are browser-only anyway, so it
+                // could not move into `:shared` even if the domain wanted it.
+                implementation(npm("firebase", "12.17.0"))
             }
         }
     }
