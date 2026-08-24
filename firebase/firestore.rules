@@ -1,0 +1,26 @@
+rules_version = '2';
+
+// Dayboard is a static bundle on GitHub Pages talking to Firestore straight
+// from the browser. There is no server in between, so these rules ARE the
+// security boundary and are deliberately restrictive.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Every document Dayboard writes belongs to exactly one signed-in user and
+    // lives under that user's own path: tasks, notes, tags, the timer doc, the
+    // settings doc, and the FCM tokens. One rule therefore covers all of them,
+    // and it replaces every `auth.uid() = user_id` row policy the Supabase
+    // original needed per table.
+    //
+    // The tag-to-task and tag-to-note links are arrays on the task and note
+    // documents rather than join collections, so the junction-table policies
+    // have nothing left to guard.
+    match /users/{uid}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Anything outside a user's own subtree is denied, including reads. A new
+    // collection is therefore inaccessible until a rule above names it, which
+    // is the behavior we want from a client-only app.
+  }
+}

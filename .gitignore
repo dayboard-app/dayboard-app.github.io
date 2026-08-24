@@ -1,0 +1,18 @@
+# Gradle / Kotlin build output
+build/
+.gradle/
+local.properties
+
+# `kotlin-js-store/yarn.lock` is deliberately NOT ignored: the lockfile pins the
+# npm dependency tree (including the Firebase SDK) so CI builds what was tested.
+
+# IDE
+.idea/
+*.iml
+
+# macOS
+.DS_Store
+
+# Claude Code local session state, kept out of the repo like the rest of the
+# local-only tooling config.
+.claude/
