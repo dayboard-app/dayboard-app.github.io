@@ -144,3 +144,273 @@
     font-size: 1rem;
   }
 }
+
+/* ------------------------------------------------------------------- timer -- */
+
+.timer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.timer--expanded {
+  gap: 3rem;
+}
+
+/* ----- mode tabs ----- */
+
+.timer__tabs {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: calc(var(--radius) - 2px);
+  background-color: hsl(var(--muted));
+}
+
+.timer__tab {
+  border: none;
+  border-radius: calc(var(--radius) - 4px);
+  padding: 0.375rem 0.75rem;
+  background-color: transparent;
+  color: hsl(var(--muted-foreground));
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.timer__tab:hover {
+  color: hsl(var(--foreground));
+}
+
+/* The active tab takes the colour of the mode it selects, so the card reads as
+   work or as rest without reading the label. */
+.timer__tab--active,
+.timer__tab--active:hover {
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+}
+
+.timer__tab--break,
+.timer__tab--break:hover {
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+}
+
+/* ----- ring ----- */
+
+.timer__ring {
+  position: relative;
+  width: 14rem;
+  height: 14rem;
+}
+
+.timer__svg {
+  width: 100%;
+  height: 100%;
+  /* Puts the start of the arc at twelve o'clock instead of three. */
+  transform: rotate(-90deg);
+}
+
+.timer__svg > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* One second, linear: the arc has exactly one second to cover one second's worth
+   of ring, so it moves at the rate the time does. */
+.timer__arc {
+  transition: stroke-dashoffset 1s linear;
+}
+
+.timer__readout {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  /* The ring is under this; nothing here is clickable. */
+  pointer-events: none;
+}
+
+.timer__time {
+  font-size: 3rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Breathing rather than blinking. It marks the timer as live without pulling the
+   eye back to it every second. */
+.timer__time--running {
+  animation: timer-pulse 2s ease-in-out infinite;
+}
+
+@keyframes timer-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.85;
+  }
+}
+
+.timer__time--placeholder {
+  color: hsl(var(--muted-foreground) / 0.3);
+}
+
+.timer__label {
+  margin-top: 0.25rem;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* ----- session dots ----- */
+
+.timer__dots {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.timer__dot {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 9999px;
+  background-color: hsl(var(--accent));
+  transition: background-color 150ms ease;
+}
+
+.timer__dot--done {
+  background-color: hsl(var(--primary));
+}
+
+/* ----- controls ----- */
+
+.timer__controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.timer__side-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.5rem;
+  height: 2.5rem;
+  border: none;
+  border-radius: 9999px;
+  background-color: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.timer__side-button:hover {
+  background-color: hsl(var(--muted));
+  color: hsl(var(--foreground));
+}
+
+.timer__play {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border: none;
+  border-radius: 9999px;
+  background-color: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  cursor: pointer;
+  transition: transform 150ms ease;
+}
+
+.timer__play--break {
+  background-color: hsl(var(--secondary));
+  color: hsl(var(--secondary-foreground));
+}
+
+.timer__play:hover {
+  transform: scale(1.05);
+}
+
+.timer__play:active {
+  transform: scale(0.95);
+}
+
+/* A triangle sits visually left of centre inside a circle. The square pause glyph
+   does not, which is why only one of them is nudged. */
+.timer__play-glyph {
+  margin-left: 0.125rem;
+}
+
+/* ----- loading skeleton ----- */
+
+/* Holds the space the dots and the controls will take, so the card does not change
+   height - and shove everything below it - the moment the timer arrives. */
+.timer__dots-placeholder {
+  height: 0.625rem;
+}
+
+.timer__controls-placeholder {
+  height: 3.5rem;
+}
+
+/* ----- expanded ----- */
+
+.timer--expanded .timer__ring {
+  width: 20rem;
+  height: 20rem;
+}
+
+.timer--expanded .timer__time {
+  font-size: 4.5rem;
+}
+
+.timer--expanded .timer__label {
+  font-size: 1.125rem;
+}
+
+.timer--expanded .timer__dots {
+  gap: 0.75rem;
+}
+
+.timer--expanded .timer__dot {
+  width: 0.875rem;
+  height: 0.875rem;
+}
+
+.timer--expanded .timer__controls {
+  gap: 1.25rem;
+}
+
+.timer--expanded .timer__side-button {
+  width: 3.5rem;
+  height: 3.5rem;
+}
+
+.timer--expanded .timer__play {
+  width: 5rem;
+  height: 5rem;
+}
+
+@media (min-width: 1024px) {
+  .timer--expanded .timer__ring {
+    width: 28rem;
+    height: 28rem;
+  }
+
+  .timer--expanded .timer__time {
+    font-size: 6rem;
+  }
+}

@@ -4,13 +4,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import io.github.dayboard.presentation.ClockTime
-import kotlinx.browser.document
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import org.w3c.dom.Document
 import kotlin.js.Date
 
 /**
@@ -43,9 +41,7 @@ class ClockController(private val scope: CoroutineScope) {
         // would correct the display can be most of a minute away - long enough to
         // read a wrong clock and believe it. Correcting on the way back costs one
         // read and removes that window entirely.
-        document.addEventListener("visibilitychange", {
-            if (!document.isHidden) time = readClock()
-        })
+        onPageVisible { time = readClock() }
 
         job = scope.launch {
             while (isActive) {
@@ -55,15 +51,6 @@ class ClockController(private val scope: CoroutineScope) {
         }
     }
 }
-
-/**
- * `document.hidden`, which Kotlin's `Document` does not declare.
- *
- * A browser too old to have the Page Visibility API reports `undefined`, which is
- * read as visible. That is the harmless direction: the clock is re-read when it did
- * not strictly need to be.
- */
-private val Document.isHidden: Boolean get() = asDynamic().hidden == true
 
 /** Reads the device clock, in the browser's own field conventions. */
 private fun readClock(): ClockTime = Date().let { now ->

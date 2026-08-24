@@ -10,10 +10,12 @@ import androidx.compose.runtime.setValue
 import io.github.dayboard.data.ClockController
 import io.github.dayboard.data.DragController
 import io.github.dayboard.data.SettingsController
+import io.github.dayboard.data.TimerController
 import io.github.dayboard.data.WeatherController
 import io.github.dayboard.domain.model.BoardColumn
 import io.github.dayboard.domain.model.CardId
 import io.github.dayboard.ui.cards.ClockCard
+import io.github.dayboard.ui.cards.TimerCard
 import io.github.dayboard.ui.components.Card
 import io.github.dayboard.ui.icons.Icon
 import io.github.dayboard.ui.icons.LucideIcon
@@ -38,6 +40,7 @@ fun Dashboard(
     settings: SettingsController,
     clock: ClockController,
     weather: WeatherController,
+    timer: TimerController,
     drag: DragController,
     onSignOut: () -> Unit,
 ) {
@@ -70,6 +73,7 @@ fun Dashboard(
                     settings = settings,
                     clock = clock,
                     weather = weather,
+                    timer = timer,
                     drag = drag,
                     draggable = false,
                     onExpand = { expanded = CardId.Clock },
@@ -82,6 +86,7 @@ fun Dashboard(
                         settings = settings,
                         clock = clock,
                         weather = weather,
+                        timer = timer,
                         drag = drag,
                         onExpand = { expanded = it },
                     )
@@ -91,6 +96,7 @@ fun Dashboard(
                         settings = settings,
                         clock = clock,
                         weather = weather,
+                        timer = timer,
                         drag = drag,
                         onExpand = { expanded = it },
                     )
@@ -120,6 +126,7 @@ fun Dashboard(
                     settings = settings,
                     clock = clock,
                     weather = weather,
+                    timer = timer,
                 )
             }
         }
@@ -154,6 +161,7 @@ private fun BoardColumnView(
     settings: SettingsController,
     clock: ClockController,
     weather: WeatherController,
+    timer: TimerController,
     drag: DragController,
     onExpand: (CardId) -> Unit,
 ) {
@@ -178,6 +186,7 @@ private fun BoardColumnView(
                     settings = settings,
                     clock = clock,
                     weather = weather,
+                    timer = timer,
                     drag = drag,
                     column = column,
                     index = index,
@@ -194,6 +203,7 @@ private fun BoardCard(
     settings: SettingsController,
     clock: ClockController,
     weather: WeatherController,
+    timer: TimerController,
     drag: DragController,
     column: BoardColumn = BoardColumn.Left,
     index: Int = 0,
@@ -230,6 +240,7 @@ private fun BoardCard(
                 settings = settings,
                 clock = clock,
                 weather = weather,
+                timer = timer,
             )
         }
     }
@@ -248,6 +259,7 @@ private fun CardBody(
     settings: SettingsController,
     clock: ClockController,
     weather: WeatherController,
+    timer: TimerController,
 ) {
     when (card) {
         CardId.Clock -> ClockCard(
@@ -258,7 +270,16 @@ private fun CardBody(
             expanded = expanded,
         )
 
-        CardId.Timer -> Placeholder("The Pomodoro timer arrives after the clock.")
+        CardId.Timer -> TimerCard(
+            state = timer.state,
+            settings = settings.settings,
+            loaded = timer.loaded,
+            expanded = expanded,
+            onSwitchMode = timer::switchTo,
+            onToggleRunning = timer::toggleRunning,
+            onReset = timer::reset,
+            onSkip = timer::skip,
+        )
         CardId.Tasks -> Placeholder("Tasks arrive after the timer.")
         CardId.Notes -> Placeholder("Notes arrive after tasks.")
     }
