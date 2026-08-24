@@ -54,6 +54,24 @@ class CardLayoutTest {
     }
 
     @Test
+    fun droppingBelowEverythingInTheSameColumn_movesTheCardLast() {
+        // The pointer passing the last card's midpoint yields an index of `size`,
+        // which is one past the last valid one. That is an ordinary gesture - drag
+        // a card to the bottom of its own column - and must not be ignored.
+        val layout = CardLayout.Default.copy(left = listOf("a", "b", "c"))
+        val moved = layout.moveCard(BoardColumn.Left, BoardColumn.Left, 0, 3, all)
+        assertEquals(listOf("b", "c", "a"), moved.left)
+    }
+
+    @Test
+    fun droppingBelowEverything_keepsHiddenCardsAndTheDraggedCardOnce() {
+        val moved = withHidden.moveCard(BoardColumn.Left, BoardColumn.Left, 0, 3, hiddenNotVisible)
+        assertEquals(listOf("b", "c", "a"), moved.left.filter(hiddenNotVisible))
+        assertTrue("hidden" in moved.left)
+        assertEquals(moved.left.size, moved.left.distinct().size, "no card may be duplicated")
+    }
+
+    @Test
     fun droppingACardOnItself_changesNothing() {
         val layout = CardLayout.Default.copy(left = listOf("a", "b", "c"))
         assertEquals(layout, layout.moveCard(BoardColumn.Left, BoardColumn.Left, 1, 1, all))

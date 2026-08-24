@@ -119,20 +119,25 @@ class DragController {
     /**
      * Works out where the pointer is pointing.
      *
-     * The column is chosen horizontally, so dragging above or below the board still
-     * targets a column rather than nothing. Within it, the index is the number of
-     * cards whose midpoint the pointer has passed - the same rule a list uses to
-     * decide whether you are dropping above or below a row.
+     * The column is the nearest one, measured as the distance from the pointer to
+     * each column's box. Nearest rather than "the one containing x" because the two
+     * columns only sit side by side on a wide screen: below the tablet breakpoint
+     * they stack, sharing the same horizontal span, and an x-only test would then
+     * always answer with the left column - so on a phone every drag would move a
+     * card leftwards regardless of where it was dropped.
      *
-     * The dragged card is deliberately counted along with the rest: the index is a
-     * position in the list as it stands now, which is what `moveCard` expects.
+     * Distance also means a pointer dragged off the board entirely still targets
+     * the column it is closest to, rather than nothing.
+     *
+     * Within the column, the index is the number of cards whose midpoint the
+     * pointer has passed, which is the rule a list uses to decide whether a drop is
+     * above or below a row. The dragged card is deliberately counted with the rest:
+     * the index is a position in the list as it stands now, which is what
+     * `moveCard` expects.
      */
     private fun hitTest(x: Double, y: Double): Target? {
         val column = columnElements.entries
-            .firstOrNull { (_, element) ->
-                val bounds = element.getBoundingClientRect()
-                x >= bounds.left && x <= bounds.right
-            }
+            .minByOrNull { (_, element) -> squaredDistanceTo(element, x, y) }
             ?.key
             ?: return target
 
@@ -143,5 +148,13 @@ class DragController {
         }
 
         return Target(column, index)
+    }
+
+    /** Zero when the point is inside the element, growing with distance outside it. */
+    private fun squaredDistanceTo(element: HTMLElement, x: Double, y: Double): Double {
+        val bounds = element.getBoundingClientRect()
+        val dx = maxOf(bounds.left - x, 0.0, x - bounds.right)
+        val dy = maxOf(bounds.top - y, 0.0, y - bounds.bottom)
+        return dx * dx + dy * dy
     }
 }
