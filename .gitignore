@@ -21,3 +21,9 @@ local.properties
 # Generated from whichever JDK happened to build locally; it pins the daemon
 # toolchain and would override the Java version the CI workflow sets up.
 gradle/gradle-daemon-jvm.properties
+
+# Firebase emulator run artifacts. The emulators themselves are configured by
+# `firebase.json`, which IS committed; these are logs and local state.
+*-debug.log
+.firebase/
+firebase-export-*/

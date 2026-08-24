@@ -44,3 +44,11 @@ external fun sendEmailVerification(
     user: FirebaseUser,
     actionCodeSettings: ActionCodeSettings = definedExternally,
 ): Promise<Unit>
+
+/**
+ * Points this Auth instance at the local emulator.
+ *
+ * Must be called before any other Auth operation, which is why it happens inside
+ * the lazy that builds the instance rather than at some later start-up step.
+ */
+external fun connectAuthEmulator(auth: Auth, url: String, options: dynamic = definedExternally)
