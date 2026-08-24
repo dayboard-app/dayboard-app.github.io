@@ -178,7 +178,8 @@ class CardLayoutTest {
 
     @Test
     fun parse_ignoresEntriesOfTheWrongType() {
-        val parsed = parseCardLayout(mapOf("left" to listOf("tasks", 7, null), "right" to listOf<Any>()))
+        val parsed =
+            parseCardLayout(mapOf("left" to listOf("tasks", 7, null), "right" to listOf<Any>()))
         assertEquals(listOf("tasks"), parsed.left)
         assertEquals(emptyList(), parsed.right)
     }

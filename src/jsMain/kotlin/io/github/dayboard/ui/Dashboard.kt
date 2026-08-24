@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -289,7 +290,10 @@ private fun BoardColumnView(
     val isTarget = drag.drag != null && drag.target?.column == column
 
     Div({
-        classes(*listOfNotNull("board__column", "board__column--target".takeIf { isTarget }).toTypedArray())
+        classes(
+            *listOfNotNull("board__column", "board__column--target".takeIf { isTarget })
+                .toTypedArray(),
+        )
         ref { element ->
             drag.registerColumn(column, element)
             onDispose { drag.registerColumn(column, null) }
@@ -302,24 +306,33 @@ private fun BoardColumnView(
 
         visible.forEachIndexed { index, cardId ->
             CardId.fromId(cardId)?.let { card ->
-                BoardCard(
-                    card = card,
-                    settings = settings,
-                    clock = clock,
-                    weather = weather,
-                    timer = timer,
-                    tasks = tasks,
-                    notes = notes,
-                    listDrag = listDrag,
-                    drag = drag,
-                    column = column,
-                    index = index,
-                    onExpand = { onExpand(card) },
-                    onEditTask = onEditTask,
-                    onViewTask = onViewTask,
-                    onEditNote = onEditNote,
-                    onViewNote = onViewNote,
-                )
+                // Keyed by card, and it matters: Compose reuses a slot's element for
+                // whatever card now sits in that position, while the `ref` that
+                // registers it with the drag controller runs only once, when the
+                // element is created. Without this, hiding a card in the settings
+                // would leave the controller measuring drops against elements filed
+                // under the wrong card. The same fix went into the task and note
+                // lists, where the failure was reproducible.
+                key(card) {
+                    BoardCard(
+                        card = card,
+                        settings = settings,
+                        clock = clock,
+                        weather = weather,
+                        timer = timer,
+                        tasks = tasks,
+                        notes = notes,
+                        listDrag = listDrag,
+                        drag = drag,
+                        column = column,
+                        index = index,
+                        onExpand = { onExpand(card) },
+                        onEditTask = onEditTask,
+                        onViewTask = onViewTask,
+                        onEditNote = onEditNote,
+                        onViewNote = onViewNote,
+                    )
+                }
             }
         }
     }
@@ -348,7 +361,10 @@ private fun BoardCard(
     val dragging = drag.isDragging(card.id)
 
     Div({
-        classes(*listOfNotNull("board__slot", "board__slot--dragging".takeIf { dragging }).toTypedArray())
+        classes(
+            *listOfNotNull("board__slot", "board__slot--dragging".takeIf { dragging })
+                .toTypedArray(),
+        )
         ref { element ->
             drag.registerCard(card.id, element)
             onDispose { drag.registerCard(card.id, null) }

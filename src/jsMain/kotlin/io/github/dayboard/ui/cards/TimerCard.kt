@@ -184,14 +184,18 @@ private val RING_MARKUP =
         """stroke="hsl(var(--accent))" stroke-width="$RING_WIDTH" />""" +
         """<circle class="timer__arc" cx="100" cy="100" r="$RING_RADIUS" fill="none" """ +
         """stroke-width="$RING_WIDTH" stroke-linecap="round" """ +
-        """stroke-dasharray="$RING_CIRCUMFERENCE" stroke-dashoffset="$RING_CIRCUMFERENCE" /></svg>"""
+        """stroke-dasharray="$RING_CIRCUMFERENCE" """ +
+        """stroke-dashoffset="$RING_CIRCUMFERENCE" /></svg>"""
 
 @Composable
 private fun SessionDots(state: TimerState, settings: Settings) {
     Div({ classes("timer__dots") }) {
         sessionDots(state.completedSessions, settings.longBreakInterval).forEach { done ->
             Div({
-                classes(*listOfNotNull("timer__dot", "timer__dot--done".takeIf { done }).toTypedArray())
+                classes(
+                    *listOfNotNull("timer__dot", "timer__dot--done".takeIf { done })
+                        .toTypedArray(),
+                )
             })
         }
     }

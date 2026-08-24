@@ -23,7 +23,9 @@ class DestinationTest {
         // Every route, so a returning user's address survives the wait rather than
         // being redirected away before Firebase has reported.
         allRoutes.forEach { route ->
-            assertEquals(Destination.Pending, resolveDestination(AuthState.Loading, route), "route $route")
+            val destination = resolveDestination(AuthState.Loading, route)
+
+            assertEquals(Destination.Pending, destination, "route $route")
         }
     }
 

@@ -18,7 +18,7 @@ class ThemeTest {
     fun themeId_fromId_fallsBackToCoralForAnythingUnrecognised() {
         // A first visit, a cleared value, a retired theme, and the wrong case.
         listOf(null, "", " ", "purple", "Coral", "CORAL").forEach { stored ->
-            assertEquals(ThemeId.Coral, ThemeId.fromId(stored), "stored ${stored?.let { "\"$it\"" }}")
+            assertEquals(ThemeId.Coral, ThemeId.fromId(stored), "stored \"$stored\"")
         }
     }
 
@@ -32,7 +32,7 @@ class ThemeTest {
     @Test
     fun colorMode_fromId_fallsBackToSystemForAnythingUnrecognised() {
         listOf(null, "", "auto", "Dark").forEach { stored ->
-            assertEquals(ColorMode.System, ColorMode.fromId(stored), "stored ${stored?.let { "\"$it\"" }}")
+            assertEquals(ColorMode.System, ColorMode.fromId(stored), "stored \"$stored\"")
         }
     }
 

@@ -80,7 +80,10 @@ class AuthMessagesTest {
     @Test
     fun codesAreMatchedWithOrWithoutTheAuthPrefix() {
         // The prefix is stripped by some wrappers and kept by others; both must land.
-        assertEquals(AuthMessages.forCode("auth/weak-password"), AuthMessages.forCode("weak-password"))
+        assertEquals(
+            AuthMessages.forCode("auth/weak-password"),
+            AuthMessages.forCode("weak-password"),
+        )
     }
 
     @Test
@@ -97,7 +100,8 @@ class AuthMessagesTest {
     fun theCredentialCodesAreIndistinguishable() {
         // Wording them differently would leak whether an address is registered,
         // which is the whole point of Firebase's enumeration protection.
-        val sentences = listOf("auth/invalid-credential", "auth/wrong-password", "auth/user-not-found")
+        val sentences =
+            listOf("auth/invalid-credential", "auth/wrong-password", "auth/user-not-found")
             .map { AuthMessages.forCode(it) }
             .toSet()
         assertEquals(1, sentences.size, "credential failures must not be distinguishable")
