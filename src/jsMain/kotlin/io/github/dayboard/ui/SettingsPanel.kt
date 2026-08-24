@@ -6,10 +6,12 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import io.github.dayboard.data.NotificationController
 import io.github.dayboard.data.SettingsController
 import io.github.dayboard.data.TagsController
 import io.github.dayboard.data.ThemeController
 import io.github.dayboard.domain.model.ColorMode
+import io.github.dayboard.domain.model.NotificationPermission
 import io.github.dayboard.domain.model.SettingRange
 import io.github.dayboard.domain.model.Settings
 import io.github.dayboard.domain.model.TAG_COLORS
@@ -51,6 +53,7 @@ fun SettingsPanel(
     settings: SettingsController,
     theme: ThemeController,
     tags: TagsController,
+    notifications: NotificationController,
     onDeleteTag: (String) -> Unit,
     onSignOut: () -> Unit,
     onDismiss: () -> Unit,
@@ -99,6 +102,13 @@ fun SettingsPanel(
             }
 
             AppearanceSection(theme = theme, settings = settings)
+
+            // Hidden rather than disabled where the browser cannot show a
+            // notification at all: a control that explains why it will not work is
+            // worse than one that was never offered.
+            if (notifications.supported) {
+                NotificationsSection(notifications)
+            }
 
             Div({ classes("panel__sign-out") }) {
                 Button({
@@ -330,6 +340,40 @@ private fun AppearanceSection(theme: ThemeController, settings: SettingsControll
                     Icon(option.icon, size = ICON_TINY)
                     Text(option.label)
                 }
+            }
+        }
+    }
+}
+
+/**
+ * Turning timer notifications on.
+ *
+ * There is no way to turn them off here, and that is deliberate: permission belongs
+ * to the browser, and a switch that appeared to revoke it while the browser went on
+ * allowing notifications would be a lie. Browsers put the real control in the site
+ * settings, and say so.
+ */
+@Composable
+private fun NotificationsSection(notifications: NotificationController) {
+    Section(LucideIcon.Bell, "Notifications") {
+        when (notifications.permission) {
+            NotificationPermission.Granted -> Div({ classes("panel__enabled") }) {
+                Icon(LucideIcon.Bell, size = ICON_TINY)
+                Text("Notifications enabled")
+            }
+
+            // Asking again does nothing - a browser will not prompt twice - so this
+            // says where the control actually is rather than offering a dead button.
+            NotificationPermission.Denied -> Div({ classes("panel__row-description") }) {
+                Text("Blocked by this browser. Allow notifications in its site settings.")
+            }
+
+            NotificationPermission.Default -> Button({
+                classes("panel__enable-button")
+                onClick { notifications.enable() }
+            }) {
+                Icon(LucideIcon.BellOff, size = ICON_TINY)
+                Text("Enable notifications")
             }
         }
     }
