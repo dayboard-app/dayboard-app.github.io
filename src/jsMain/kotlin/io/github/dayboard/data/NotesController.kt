@@ -183,6 +183,25 @@ class NotesController(
         if (tag.id !in (noteById(noteId)?.tagIds ?: emptyList())) toggleTag(noteId, tag.id)
     }
 
+
+    /**
+     * Takes a deleted tag off every note carrying it.
+     *
+     * A note left holding an id that matches no tag is invisible but real, and
+     * enough to hide it under a filter that no longer exists.
+     */
+    fun removeTag(tagId: String) {
+        val account = uid ?: return
+        val affected = allNotes.filter { tagId in it.tagIds }
+        if (affected.isEmpty()) return
+
+        val cleaned = affected.map { it.copy(tagIds = it.tagIds - tagId) }
+        allNotes = allNotes.map { item -> cleaned.firstOrNull { it.id == item.id } ?: item }
+        if (filterTagId == tagId) filterTagId = null
+
+        scope.launch { notes.saveAll(account, cleaned) }
+    }
+
     // ------------------------------------------------------------------ private
 
     private fun updateNote(noteId: String, transform: (Note) -> Note) {

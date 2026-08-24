@@ -84,4 +84,40 @@ class TagsController(
         scope.launch { repository.save(account, tag) }
         return tag
     }
+
+    /**
+     * Changes a tag's name, colour or emoji.
+     *
+     * Everything carrying it keeps carrying it: tasks and notes hold the tag's id,
+     * not a copy of its name, so a rename shows everywhere at once and there is
+     * nothing else to update.
+     */
+    fun update(tagId: String, name: String, color: String, emoji: String?) {
+        val trimmed = name.trim().ifEmpty { return }
+        val account = uid ?: return
+        val existing = all.firstOrNull { it.id == tagId } ?: return
+
+        val updated = existing.copy(
+            name = trimmed,
+            color = color,
+            emoji = normalizeTagEmoji(emoji),
+        )
+
+        all = all.map { if (it.id == tagId) updated else it }
+        scope.launch { repository.save(account, updated) }
+    }
+
+    /**
+     * Removes a tag.
+     *
+     * Taking it off the tasks and notes carrying it is the caller's job, and has to
+     * happen too: an item left holding an id that matches no tag is invisible but
+     * real, and enough to hide it under a filter that no longer exists.
+     */
+    fun delete(tagId: String) {
+        val account = uid ?: return
+
+        all = all.filterNot { it.id == tagId }
+        scope.launch { repository.delete(account, tagId) }
+    }
 }

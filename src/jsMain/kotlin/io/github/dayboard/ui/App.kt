@@ -9,6 +9,7 @@ import io.github.dayboard.data.ListDragController
 import io.github.dayboard.data.NotesController
 import io.github.dayboard.data.Router
 import io.github.dayboard.data.SettingsController
+import io.github.dayboard.data.ThemeController
 import io.github.dayboard.data.TagsController
 import io.github.dayboard.data.TasksController
 import io.github.dayboard.data.TimerController
@@ -36,6 +37,7 @@ fun App(
     tasks: TasksController,
     notes: NotesController,
     tags: TagsController,
+    theme: ThemeController,
     drag: DragController,
     listDrag: ListDragController,
 ) {
@@ -72,6 +74,18 @@ fun App(
     LaunchedEffect(account, settings.loaded, settings.settings) {
         if (account != null && settings.loaded) {
             timer.follow(account, settings.settings)
+        }
+    }
+
+    // The account's theme wins over the browser's once it arrives. The browser's
+    // copy exists to paint the right colours before there is an account to ask;
+    // this is what makes a theme chosen on one device show up on another.
+    //
+    // No loop: setting a value it already holds returns without doing anything.
+    LaunchedEffect(settings.loaded, settings.settings.themeId, settings.settings.colorMode) {
+        if (settings.loaded) {
+            theme.setThemeId(settings.settings.themeId)
+            theme.setColorMode(settings.settings.colorMode)
         }
     }
 
@@ -116,6 +130,8 @@ fun App(
                         timer = timer,
                         tasks = tasks,
                         notes = notes,
+                        tags = tags,
+                        theme = theme,
                         drag = drag,
                         listDrag = listDrag,
                         onSignOut = auth::signOut,

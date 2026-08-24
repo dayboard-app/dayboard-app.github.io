@@ -86,6 +86,7 @@ fun main() {
             tasks = tasks,
             notes = notes,
             tags = tags,
+            theme = theme,
             drag = drag,
             listDrag = listDrag,
         )
