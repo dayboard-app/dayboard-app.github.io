@@ -3,14 +3,18 @@ package io.github.dayboard
 import io.github.dayboard.data.AuthController
 import io.github.dayboard.data.ClockController
 import io.github.dayboard.data.DragController
+import io.github.dayboard.data.ListDragController
 import io.github.dayboard.data.Router
 import io.github.dayboard.data.SettingsController
+import io.github.dayboard.data.TasksController
 import io.github.dayboard.data.ThemeController
 import io.github.dayboard.data.TimerController
 import io.github.dayboard.data.WeatherController
 import io.github.dayboard.data.firebase.FirebaseAuthRepository
 import io.github.dayboard.data.audio.WebAudioChime
 import io.github.dayboard.data.firebase.FirestoreSettingsRepository
+import io.github.dayboard.data.firebase.FirestoreTagRepository
+import io.github.dayboard.data.firebase.FirestoreTaskRepository
 import io.github.dayboard.data.firebase.FirestoreTimerRepository
 import io.github.dayboard.data.weather.OpenMeteoWeatherRepository
 import io.github.dayboard.ui.App
@@ -44,7 +48,13 @@ fun main() {
         chime = WebAudioChime(),
         scope = scope,
     )
+    val tasks = TasksController(
+        tasks = FirestoreTaskRepository(),
+        tags = FirestoreTagRepository(),
+        scope = scope,
+    )
     val drag = DragController()
+    val listDrag = ListDragController()
 
     theme.start()
     router.start()
@@ -62,7 +72,9 @@ fun main() {
             clock = clock,
             weather = weather,
             timer = timer,
+            tasks = tasks,
             drag = drag,
+            listDrag = listDrag,
         )
     }
 }

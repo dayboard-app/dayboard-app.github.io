@@ -9,13 +9,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import io.github.dayboard.data.ClockController
 import io.github.dayboard.data.DragController
+import io.github.dayboard.data.ListDragController
 import io.github.dayboard.data.SettingsController
+import io.github.dayboard.data.TasksController
 import io.github.dayboard.data.TimerController
 import io.github.dayboard.data.WeatherController
 import io.github.dayboard.domain.model.BoardColumn
 import io.github.dayboard.domain.model.CardId
 import io.github.dayboard.ui.cards.ClockCard
+import io.github.dayboard.ui.cards.TasksCard
 import io.github.dayboard.ui.cards.TimerCard
+import io.github.dayboard.ui.dialogs.TaskEditDialog
+import io.github.dayboard.ui.dialogs.TaskViewDialog
 import io.github.dayboard.ui.components.Card
 import io.github.dayboard.ui.icons.Icon
 import io.github.dayboard.ui.icons.LucideIcon
@@ -41,10 +46,17 @@ fun Dashboard(
     clock: ClockController,
     weather: WeatherController,
     timer: TimerController,
+    tasks: TasksController,
     drag: DragController,
+    listDrag: ListDragController,
     onSignOut: () -> Unit,
 ) {
     var expanded: CardId? by remember { mutableStateOf(null) }
+
+    // The dialogs belong to the board rather than to the card, so that collapsing
+    // the card behind an open dialog cannot take the dialog with it.
+    var editingTaskId: String? by remember { mutableStateOf(null) }
+    var viewingTaskId: String? by remember { mutableStateOf(null) }
     val layout = settings.settings.cardLayout
 
     val visibleLeft = layout.left.filter(settings.settings::isVisible)
@@ -74,9 +86,13 @@ fun Dashboard(
                     clock = clock,
                     weather = weather,
                     timer = timer,
+                    tasks = tasks,
+                    listDrag = listDrag,
                     drag = drag,
                     draggable = false,
                     onExpand = { expanded = CardId.Clock },
+                    onEditTask = { editingTaskId = it },
+                    onViewTask = { viewingTaskId = it },
                 )
 
                 Div({ classes("board__columns") }) {
@@ -87,8 +103,12 @@ fun Dashboard(
                         clock = clock,
                         weather = weather,
                         timer = timer,
+                        tasks = tasks,
+                        listDrag = listDrag,
                         drag = drag,
                         onExpand = { expanded = it },
+                        onEditTask = { editingTaskId = it },
+                        onViewTask = { viewingTaskId = it },
                     )
                     BoardColumnView(
                         column = BoardColumn.Right,
@@ -97,12 +117,40 @@ fun Dashboard(
                         clock = clock,
                         weather = weather,
                         timer = timer,
+                        tasks = tasks,
+                        listDrag = listDrag,
                         drag = drag,
                         onExpand = { expanded = it },
+                        onEditTask = { editingTaskId = it },
+                        onViewTask = { viewingTaskId = it },
                     )
                 }
             }
         }
+    }
+
+    editingTaskId?.let { id ->
+        TaskEditDialog(
+            taskId = id,
+            tasks = tasks,
+            drag = listDrag,
+            onDismiss = { editingTaskId = null },
+        )
+    }
+
+    viewingTaskId?.let { id ->
+        TaskViewDialog(
+            taskId = id,
+            tasks = tasks,
+            drag = listDrag,
+            // One dialog at a time: reading a task and then editing it is a step
+            // forward, not a second window on top of the first.
+            onEdit = {
+                viewingTaskId = null
+                editingTaskId = id
+            },
+            onDismiss = { viewingTaskId = null },
+        )
     }
 
     expanded?.let { card ->
@@ -127,6 +175,10 @@ fun Dashboard(
                     clock = clock,
                     weather = weather,
                     timer = timer,
+                    tasks = tasks,
+                    listDrag = listDrag,
+                    onEditTask = { editingTaskId = it },
+                    onViewTask = { viewingTaskId = it },
                 )
             }
         }
@@ -162,8 +214,12 @@ private fun BoardColumnView(
     clock: ClockController,
     weather: WeatherController,
     timer: TimerController,
+    tasks: TasksController,
+    listDrag: ListDragController,
     drag: DragController,
     onExpand: (CardId) -> Unit,
+    onEditTask: (String) -> Unit,
+    onViewTask: (String) -> Unit,
 ) {
     val isTarget = drag.drag != null && drag.target?.column == column
 
@@ -187,10 +243,14 @@ private fun BoardColumnView(
                     clock = clock,
                     weather = weather,
                     timer = timer,
+                    tasks = tasks,
+                    listDrag = listDrag,
                     drag = drag,
                     column = column,
                     index = index,
                     onExpand = { onExpand(card) },
+                    onEditTask = onEditTask,
+                    onViewTask = onViewTask,
                 )
             }
         }
@@ -204,11 +264,15 @@ private fun BoardCard(
     clock: ClockController,
     weather: WeatherController,
     timer: TimerController,
+    tasks: TasksController,
+    listDrag: ListDragController,
     drag: DragController,
     column: BoardColumn = BoardColumn.Left,
     index: Int = 0,
     draggable: Boolean = true,
     onExpand: () -> Unit,
+    onEditTask: (String) -> Unit,
+    onViewTask: (String) -> Unit,
 ) {
     val dragging = drag.isDragging(card.id)
 
@@ -241,6 +305,10 @@ private fun BoardCard(
                 clock = clock,
                 weather = weather,
                 timer = timer,
+                tasks = tasks,
+                listDrag = listDrag,
+                onEditTask = onEditTask,
+                onViewTask = onViewTask,
             )
         }
     }
@@ -260,6 +328,10 @@ private fun CardBody(
     clock: ClockController,
     weather: WeatherController,
     timer: TimerController,
+    tasks: TasksController,
+    listDrag: ListDragController,
+    onEditTask: (String) -> Unit,
+    onViewTask: (String) -> Unit,
 ) {
     when (card) {
         CardId.Clock -> ClockCard(
@@ -280,7 +352,13 @@ private fun CardBody(
             onReset = timer::reset,
             onSkip = timer::skip,
         )
-        CardId.Tasks -> Placeholder("Tasks arrive after the timer.")
+        CardId.Tasks -> TasksCard(
+            tasks = tasks,
+            drag = listDrag,
+            expanded = expanded,
+            onEditTask = onEditTask,
+            onViewTask = onViewTask,
+        )
         CardId.Notes -> Placeholder("Notes arrive after tasks.")
     }
 }

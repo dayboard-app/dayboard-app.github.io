@@ -5,8 +5,10 @@ import androidx.compose.runtime.LaunchedEffect
 import io.github.dayboard.data.AuthController
 import io.github.dayboard.data.ClockController
 import io.github.dayboard.data.DragController
+import io.github.dayboard.data.ListDragController
 import io.github.dayboard.data.Router
 import io.github.dayboard.data.SettingsController
+import io.github.dayboard.data.TasksController
 import io.github.dayboard.data.TimerController
 import io.github.dayboard.data.WeatherController
 import io.github.dayboard.domain.model.AuthState
@@ -29,17 +31,24 @@ fun App(
     clock: ClockController,
     weather: WeatherController,
     timer: TimerController,
+    tasks: TasksController,
     drag: DragController,
+    listDrag: ListDragController,
 ) {
     // The settings document belongs to an account, so the listener follows the
     // session rather than the screen: attaching it in the dashboard would drop it
     // every time the user looked at another route.
     LaunchedEffect(auth.state) {
         when (val state = auth.state) {
-            is AuthState.SignedIn -> settings.start(state.user.uid)
+            is AuthState.SignedIn -> {
+                settings.start(state.user.uid)
+                tasks.start(state.user.uid)
+            }
+
             AuthState.SignedOut -> {
                 settings.stop()
                 timer.stop()
+                tasks.stop()
             }
             AuthState.Loading -> Unit
         }
@@ -97,7 +106,9 @@ fun App(
                         clock = clock,
                         weather = weather,
                         timer = timer,
+                        tasks = tasks,
                         drag = drag,
+                        listDrag = listDrag,
                         onSignOut = auth::signOut,
                     )
                 }

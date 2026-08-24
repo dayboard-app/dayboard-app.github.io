@@ -38,3 +38,25 @@ external fun serverTimestamp(): dynamic
 
 /** Points this Firestore instance at the local emulator. Call before any read or write. */
 external fun connectFirestoreEmulator(firestore: Firestore, host: String, port: Int)
+
+/** A collection reference, built from a path the same way [doc] is. */
+external fun collection(
+    db: Firestore,
+    path: String,
+    vararg pathSegments: String,
+): CollectionReference
+
+/** Live collection listener. Returns the unsubscribe function, as [onSnapshot] does. */
+@JsName("onSnapshot")
+external fun onCollectionSnapshot(
+    reference: CollectionReference,
+    onNext: (QuerySnapshot) -> Unit,
+    onError: (dynamic) -> Unit = definedExternally,
+): () -> Unit
+
+/** A reference to a document inside a collection, by id. */
+@JsName("doc")
+external fun docIn(reference: CollectionReference, path: String): DocumentReference
+
+/** Removes a document. Nothing under it is touched; Firestore has no cascade. */
+external fun deleteDoc(reference: DocumentReference): Promise<Unit>

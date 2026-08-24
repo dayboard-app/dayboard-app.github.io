@@ -428,3 +428,109 @@
   white-space: nowrap;
   border-width: 0;
 }
+
+/* ------------------------------------------------------ formatted text ---- */
+
+.formatted {
+  /* A long address with no spaces in it must not push the row wider than the
+     card; everything else wraps normally. */
+  overflow-wrap: anywhere;
+}
+
+.formatted__link {
+  color: hsl(var(--primary) / 0.8);
+  text-decoration: underline;
+  text-decoration-color: hsl(var(--primary) / 0.4);
+  text-underline-offset: 2px;
+}
+
+.formatted__link:hover {
+  color: hsl(var(--primary));
+  text-decoration-color: hsl(var(--primary) / 0.7);
+}
+
+.formatted__underline {
+  text-decoration: underline;
+  text-decoration-color: hsl(var(--foreground) / 0.5);
+  text-underline-offset: 2px;
+}
+
+.formatted__code {
+  border-radius: 4px;
+  padding: 0.125rem 0.375rem;
+  background-color: hsl(var(--muted));
+  color: hsl(var(--accent-foreground));
+  font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+  font-size: 0.85em;
+}
+
+/* --------------------------------------------------- formatting toolbar ---- */
+
+.toolbar {
+  display: flex;
+  width: fit-content;
+  gap: 0.125rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+  background-color: hsl(var(--popover));
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+}
+
+.toolbar__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  border-radius: 0.375rem;
+  background-color: transparent;
+  color: hsl(var(--muted-foreground));
+  cursor: pointer;
+  transition:
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.toolbar__button:hover {
+  background-color: hsl(var(--accent));
+  color: hsl(var(--foreground));
+}
+
+/* ------------------------------------------------------------- tag pill ---- */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.125rem;
+  border: none;
+  border-radius: 9999px;
+  padding: 0.125rem 0.625rem;
+  font-family: inherit;
+  font-size: 0.625rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.pill--inline {
+  padding: 0 0.375rem;
+  font-size: 0.5625rem;
+}
+
+.pill--small {
+  padding: 0.125rem 0.5rem;
+}
+
+.pill--button {
+  cursor: pointer;
+  transition: opacity 150ms ease;
+}
+
+.pill--button:hover {
+  opacity: 0.8;
+}
+
+.pill__emoji {
+  font-size: 0.875em;
+}
