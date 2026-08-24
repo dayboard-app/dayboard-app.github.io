@@ -26,6 +26,18 @@
   height: 100%;
 }
 
+/* Turns any icon into a spinner. Here rather than beside one of the two features
+   that use it, so neither owns the animation the other depends on. */
+.spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 /* --------------------------------------------------------------- button ---- */
 
 .btn {

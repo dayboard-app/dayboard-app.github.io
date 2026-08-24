@@ -3,9 +3,11 @@ package io.github.dayboard.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import io.github.dayboard.data.AuthController
+import io.github.dayboard.data.ClockController
 import io.github.dayboard.data.DragController
 import io.github.dayboard.data.Router
 import io.github.dayboard.data.SettingsController
+import io.github.dayboard.data.WeatherController
 import io.github.dayboard.domain.model.AuthState
 import io.github.dayboard.presentation.Destination
 import io.github.dayboard.presentation.Route
@@ -23,6 +25,8 @@ fun App(
     auth: AuthController,
     router: Router,
     settings: SettingsController,
+    clock: ClockController,
+    weather: WeatherController,
     drag: DragController,
 ) {
     // The settings document belongs to an account, so the listener follows the
@@ -72,6 +76,8 @@ fun App(
                     Dashboard(
                         email = signedIn.user.email,
                         settings = settings,
+                        clock = clock,
+                        weather = weather,
                         drag = drag,
                         onSignOut = auth::signOut,
                     )

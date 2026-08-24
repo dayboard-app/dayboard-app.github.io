@@ -121,16 +121,6 @@
 }
 
 /* The submit button swaps its label for this while the request is in flight. */
-.auth__spinner {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 .auth__error {
   margin: 0;
   font-size: 0.875rem;

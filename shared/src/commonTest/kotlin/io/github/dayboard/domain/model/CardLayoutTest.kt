@@ -72,6 +72,14 @@ class CardLayoutTest {
     }
 
     @Test
+    fun aDestinationAboveTheFirstCard_changesNothing() {
+        // A negative index is not a drop above the top of the column, it is a hit
+        // test that failed. The column below is the one thing it must not be read as.
+        val layout = CardLayout.Default.copy(left = listOf("a", "b", "c"))
+        assertEquals(layout, layout.moveCard(BoardColumn.Left, BoardColumn.Left, 0, -1, all))
+    }
+
+    @Test
     fun droppingACardOnItself_changesNothing() {
         val layout = CardLayout.Default.copy(left = listOf("a", "b", "c"))
         assertEquals(layout, layout.moveCard(BoardColumn.Left, BoardColumn.Left, 1, 1, all))
@@ -176,6 +184,23 @@ class CardLayoutTest {
     }
 
     @Test
+    fun parse_fallsBackForAColumnThatIsMissingOnItsOwn() {
+        val parsed = parseCardLayout(mapOf("right" to listOf("tasks")))
+
+        assertEquals(CardLayout.Default.left, parsed.left)
+        assertEquals(listOf("tasks"), parsed.right)
+    }
+
+    @Test
+    fun parse_ignoresAWidthUnderAKeyThatIsNotACardId() {
+        // Firestore keys are strings, but the document is parsed from whatever
+        // arrived, and a map read out of JSON can carry anything at all.
+        val parsed = parseCardLayout(mapOf("widths" to mapOf(7 to "full", "tasks" to "full")))
+
+        assertEquals(mapOf("tasks" to CardWidth.Full), parsed.widths)
+    }
+
+    @Test
     fun parse_migratesTheOlderSingleOrderShape() {
         // What the original's database default looks like, so anything imported
         // from it arrives this way.
@@ -195,10 +220,27 @@ class CardLayoutTest {
     fun parse_prefersTheColumnsWhenBothShapesArePresent() {
         // Both present means a newer version wrote it; the columns are the authority.
         val parsed = parseCardLayout(
-            mapOf("order" to listOf("timer", "tasks"), "left" to listOf("notes"), "right" to listOf<Any>()),
+            mapOf(
+                "order" to listOf("timer", "tasks"),
+                "left" to listOf("notes"),
+                "right" to listOf<Any>(),
+            ),
         )
         assertEquals(listOf("notes"), parsed.left)
         assertEquals(emptyList(), parsed.right)
+    }
+
+    @Test
+    fun parse_prefersOneStoredColumnOverTheOlderShape() {
+        // Only one column survived, which still means a newer version wrote this.
+        // Migrating would drop the column that did survive and rebuild both from
+        // `order`, undoing an arrangement the user made.
+        val parsed = parseCardLayout(
+            mapOf("order" to listOf("timer", "tasks"), "right" to listOf("notes")),
+        )
+
+        assertEquals(CardLayout.Default.left, parsed.left)
+        assertEquals(listOf("notes"), parsed.right)
     }
 
     @Test

@@ -1,0 +1,146 @@
+/*
+  What sits inside the dashboard cards. The shell around them - border, header,
+  collapse and expand - is in `components.css`, because that is shared with every
+  card and this is not.
+
+  Each card gets a `--expanded` modifier rather than a separate set of classes: the
+  full-screen version is the same thing larger, and two class trees would be two
+  places to change the clock.
+*/
+
+/* ------------------------------------------------------------------- clock -- */
+
+.clock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.clock--expanded {
+  gap: 2.5rem;
+}
+
+.clock__face {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.clock__time {
+  font-size: 3rem;
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1;
+}
+
+.clock__seconds {
+  margin-left: 0.05em;
+  color: hsl(var(--muted-foreground));
+  font-size: 1.875rem;
+}
+
+.clock__date {
+  margin-top: 0.5rem;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+}
+
+@media (min-width: 640px) {
+  .clock__time {
+    font-size: 3.75rem;
+  }
+
+  .clock__seconds {
+    font-size: 2.25rem;
+  }
+
+  .clock--expanded .clock__time {
+    font-size: 4.5rem;
+  }
+
+  .clock--expanded .clock__seconds {
+    font-size: 3rem;
+  }
+
+  .clock--expanded .clock__date {
+    font-size: 1rem;
+  }
+}
+
+/* The size the expanded clock exists for. Below this it is merely a big clock. */
+@media (min-width: 768px) {
+  .clock--expanded .clock__time {
+    font-size: 8rem;
+  }
+
+  .clock--expanded .clock__seconds {
+    font-size: 3.75rem;
+  }
+
+  .clock--expanded .clock__date {
+    font-size: 1.25rem;
+  }
+}
+
+/* ----------------------------------------------------------------- weather -- */
+
+.weather {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 1rem;
+  border-radius: 0.75rem;
+  background-color: hsl(var(--muted) / 0.5);
+}
+
+.weather__condition {
+  color: hsl(var(--primary));
+}
+
+.weather__item {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: hsl(var(--muted-foreground));
+}
+
+/* The one reading anybody came for, so it keeps the full text colour while the
+   labels around it stay muted. */
+.weather__temperature {
+  color: hsl(var(--foreground));
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.weather__city {
+  font-size: 0.75rem;
+}
+
+.weather--loading {
+  gap: 0.75rem;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .weather--expanded {
+    gap: 1rem;
+    padding: 0.75rem 1.25rem;
+  }
+}
+
+@media (min-width: 768px) {
+  .weather--expanded {
+    gap: 1.25rem;
+    padding: 1rem 1.5rem;
+  }
+
+  .weather--expanded .weather__temperature {
+    font-size: 1.25rem;
+  }
+
+  .weather--expanded .weather__city {
+    font-size: 1rem;
+  }
+}
