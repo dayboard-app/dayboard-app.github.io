@@ -35,3 +35,6 @@ external fun setDoc(
 
 /** The server's clock, not the device's, for `updatedAt`. */
 external fun serverTimestamp(): dynamic
+
+/** Points this Firestore instance at the local emulator. Call before any read or write. */
+external fun connectFirestoreEmulator(firestore: Firestore, host: String, port: Int)
