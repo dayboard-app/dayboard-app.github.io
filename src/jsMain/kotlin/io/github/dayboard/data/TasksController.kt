@@ -222,6 +222,25 @@ class TasksController(
         if (tag.id !in (taskById(taskId)?.tagIds ?: emptyList())) toggleTag(taskId, tag.id)
     }
 
+
+    /**
+     * Takes a deleted tag off every task carrying it.
+     *
+     * A task left holding an id that matches no tag is invisible but real, and
+     * enough to hide it under a filter that no longer exists.
+     */
+    fun removeTag(tagId: String) {
+        val account = uid ?: return
+        val affected = allTasks.filter { tagId in it.tagIds }
+        if (affected.isEmpty()) return
+
+        val cleaned = affected.map { it.copy(tagIds = it.tagIds - tagId) }
+        allTasks = allTasks.map { item -> cleaned.firstOrNull { it.id == item.id } ?: item }
+        if (filterTagId == tagId) filterTagId = null
+
+        scope.launch { tasks.saveAll(account, cleaned) }
+    }
+
     // ------------------------------------------------------------------ private
 
     private fun updateTask(taskId: String, transform: (Task) -> Task) {

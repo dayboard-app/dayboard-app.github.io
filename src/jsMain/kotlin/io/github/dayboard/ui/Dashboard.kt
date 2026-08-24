@@ -12,7 +12,9 @@ import io.github.dayboard.data.DragController
 import io.github.dayboard.data.ListDragController
 import io.github.dayboard.data.NotesController
 import io.github.dayboard.data.SettingsController
+import io.github.dayboard.data.TagsController
 import io.github.dayboard.data.TasksController
+import io.github.dayboard.data.ThemeController
 import io.github.dayboard.data.TimerController
 import io.github.dayboard.data.WeatherController
 import io.github.dayboard.domain.model.BoardColumn
@@ -52,6 +54,8 @@ fun Dashboard(
     timer: TimerController,
     tasks: TasksController,
     notes: NotesController,
+    tags: TagsController,
+    theme: ThemeController,
     drag: DragController,
     listDrag: ListDragController,
     onSignOut: () -> Unit,
@@ -64,6 +68,7 @@ fun Dashboard(
     var viewingTaskId: String? by remember { mutableStateOf(null) }
     var editingNoteId: String? by remember { mutableStateOf(null) }
     var viewingNoteId: String? by remember { mutableStateOf(null) }
+    var settingsOpen by remember { mutableStateOf(false) }
     val layout = settings.settings.cardLayout
 
     val visibleLeft = layout.left.filter(settings.settings::isVisible)
@@ -83,7 +88,7 @@ fun Dashboard(
     }
 
     Div({ classes("app") }) {
-        BoardHeader(email = email, onSignOut = onSignOut)
+        BoardHeader(email = email, onOpenSettings = { settingsOpen = true })
 
         Main({ classes("board") }) {
             if (expanded == null) {
@@ -169,6 +174,25 @@ fun Dashboard(
         )
     }
 
+    if (settingsOpen) {
+        SettingsPanel(
+            settings = settings,
+            theme = theme,
+            tags = tags,
+            // Deleting a tag has to reach three places: the tag itself, and every
+            // task and note carrying it. Coordinated here because this is where the
+            // three meet; a list left holding an id that matches no tag is invisible
+            // but real, and enough to hide it under a filter that no longer exists.
+            onDeleteTag = { tagId ->
+                tasks.removeTag(tagId)
+                notes.removeTag(tagId)
+                tags.delete(tagId)
+            },
+            onSignOut = onSignOut,
+            onDismiss = { settingsOpen = false },
+        )
+    }
+
     editingNoteId?.let { id ->
         NoteEditDialog(noteId = id, notes = notes, onDismiss = { editingNoteId = null })
     }
@@ -221,7 +245,7 @@ fun Dashboard(
 }
 
 @Composable
-private fun BoardHeader(email: String, onSignOut: () -> Unit) {
+private fun BoardHeader(email: String, onOpenSettings: () -> Unit) {
     Header({ classes("header") }) {
         Div({ classes("header__inner") }) {
             H1({ classes("header__title") }) { Text("Dayboard") }
@@ -230,11 +254,11 @@ private fun BoardHeader(email: String, onSignOut: () -> Unit) {
                 Span({ classes("header__email") }) { Text(email) }
                 Button({
                     classes("header__button")
-                    attr("aria-label", "Sign out")
-                    attr("title", "Sign out")
-                    onClick { onSignOut() }
+                    attr("aria-label", "Settings")
+                    attr("title", "Settings")
+                    onClick { onOpenSettings() }
                 }) {
-                    Icon(LucideIcon.LogOut, size = 16)
+                    Icon(LucideIcon.Settings, size = 16)
                 }
             }
         }
