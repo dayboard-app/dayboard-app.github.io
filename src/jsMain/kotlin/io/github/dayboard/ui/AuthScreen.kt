@@ -1,9 +1,9 @@
 package io.github.dayboard.ui
 
 import androidx.compose.runtime.Composable
+import io.github.bchmsl.keel.icons.Icon
+import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.presentation.AuthMode
-import io.github.dayboard.ui.icons.Icon
-import io.github.dayboard.ui.icons.LucideIcon
 import org.jetbrains.compose.web.attributes.ButtonType
 import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.disabled

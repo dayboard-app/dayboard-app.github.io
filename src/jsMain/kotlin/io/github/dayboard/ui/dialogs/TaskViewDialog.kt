@@ -2,17 +2,17 @@ package io.github.dayboard.ui.dialogs
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
+import io.github.bchmsl.keel.color.SwatchShade
+import io.github.bchmsl.keel.components.Dialog
+import io.github.bchmsl.keel.components.FormattedText
+import io.github.bchmsl.keel.icons.Icon
+import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.data.ListDragController
 import io.github.dayboard.data.TasksController
-import io.github.dayboard.domain.model.TagShade
 import io.github.dayboard.domain.model.background
 import io.github.dayboard.ui.cards.DragHandleOrSpacer
 import io.github.dayboard.ui.cards.ICON_TINY
 import io.github.dayboard.ui.cards.TaskCheckbox
-import io.github.dayboard.ui.components.Dialog
-import io.github.dayboard.ui.components.FormattedText
-import io.github.dayboard.ui.icons.Icon
-import io.github.dayboard.ui.icons.LucideIcon
 import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.P
@@ -58,7 +58,7 @@ fun TaskViewDialog(
                         Span({
                             classes("pill")
                             style {
-                                property("background-color", tag.background(TagShade.Pill))
+                                property("background-color", tag.background(SwatchShade.Pill))
                                 property("color", tag.color)
                             }
                         }) {
@@ -108,7 +108,7 @@ fun TaskViewDialog(
 
                         FormattedText(
                             text = subtask.text,
-                            classNames = listOfNotNull(
+                            extraClasses = listOfNotNull(
                                 "subtask__text",
                                 "subtask__text--done".takeIf { subtask.done },
                             ),

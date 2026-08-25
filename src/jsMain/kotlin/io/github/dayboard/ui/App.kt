@@ -2,6 +2,7 @@ package io.github.dayboard.ui
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import io.github.bchmsl.keel.theme.ThemeController
 import io.github.dayboard.data.AuthController
 import io.github.dayboard.data.ClockController
 import io.github.dayboard.data.DragController
@@ -10,7 +11,6 @@ import io.github.dayboard.data.NotesController
 import io.github.dayboard.data.NotificationController
 import io.github.dayboard.data.Router
 import io.github.dayboard.data.SettingsController
-import io.github.dayboard.data.ThemeController
 import io.github.dayboard.data.TagsController
 import io.github.dayboard.data.TasksController
 import io.github.dayboard.data.TimerController
@@ -86,7 +86,7 @@ fun App(
     // No loop: setting a value it already holds returns without doing anything.
     LaunchedEffect(settings.loaded, settings.settings.themeId, settings.settings.colorMode) {
         if (settings.loaded) {
-            theme.setThemeId(settings.settings.themeId)
+            theme.setTheme(theme.catalog.fromId(settings.settings.themeId))
             theme.setColorMode(settings.settings.colorMode)
         }
     }

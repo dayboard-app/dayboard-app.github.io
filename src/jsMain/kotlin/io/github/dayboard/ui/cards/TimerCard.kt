@@ -2,14 +2,14 @@ package io.github.dayboard.ui.cards
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import io.github.bchmsl.keel.icons.Icon
+import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.domain.model.Settings
 import io.github.dayboard.domain.model.TimerMode
 import io.github.dayboard.domain.model.TimerState
 import io.github.dayboard.domain.model.progressPercent
 import io.github.dayboard.domain.model.sessionDots
 import io.github.dayboard.presentation.formatCountdown
-import io.github.dayboard.ui.icons.Icon
-import io.github.dayboard.ui.icons.LucideIcon
 import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Span
@@ -72,7 +72,7 @@ private fun LoadingTimer(expanded: Boolean) {
         ProgressRing(progressPercent = 0.0, isBreak = false)
 
         Div({ classes("timer__readout") }) {
-            Div({ classes("timer__time", "timer__time--placeholder", "font-mono-timer") }) {
+            Div({ classes("timer__time", "timer__time--placeholder", "font-mono") }) {
                 Text("--:--")
             }
             Div({ classes("timer__label") }) { Text("Loading") }
@@ -123,7 +123,7 @@ private fun TimerRing(state: TimerState, settings: Settings, expanded: Boolean) 
                 classes(
                     *listOfNotNull(
                         "timer__time",
-                        "font-mono-timer",
+                        "font-mono",
                         // Breathing, not blinking: it marks the timer as live
                         // without pulling the eye back every second.
                         "timer__time--running".takeIf { state.running },

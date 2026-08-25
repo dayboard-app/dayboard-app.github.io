@@ -6,17 +6,18 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import io.github.bchmsl.keel.color.SwatchShade
+import io.github.bchmsl.keel.components.FormattedText
+import io.github.bchmsl.keel.icons.Icon
+import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.data.ListDragController
 import io.github.dayboard.data.NotesController
 import io.github.dayboard.domain.model.Note
 import io.github.dayboard.domain.model.Tag
-import io.github.dayboard.domain.model.TagShade
 import io.github.dayboard.domain.model.background
 import io.github.dayboard.domain.model.hasDetail
-import io.github.dayboard.ui.components.FormattedText
-import io.github.dayboard.ui.icons.Icon
-import io.github.dayboard.ui.icons.LucideIcon
 import org.jetbrains.compose.web.attributes.InputType
+import org.jetbrains.compose.web.attributes.onSubmit as onSubmitAttribute
 import org.jetbrains.compose.web.attributes.placeholder
 import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
@@ -25,7 +26,6 @@ import org.jetbrains.compose.web.dom.Input
 import org.jetbrains.compose.web.dom.P
 import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
-import org.jetbrains.compose.web.attributes.onSubmit as onSubmitAttribute
 
 /**
  * The note list: an add box, a tag filter, and the notes.
@@ -140,7 +140,7 @@ private fun NoteFilterRow(tags: List<Tag>, selectedId: String?, onSelect: (Strin
                 style {
                     property(
                         "background-color",
-                        tag.background(if (on) TagShade.Selected else TagShade.Faint),
+                        tag.background(if (on) SwatchShade.Selected else SwatchShade.Faint),
                     )
                     property("color", tag.color)
                 }
@@ -238,7 +238,7 @@ private fun NoteRow(
                 classes("task__title")
                 onClick { onViewNote(note.id) }
             }) {
-                FormattedText(text = note.title, classNames = listOf("task__text"))
+                FormattedText(text = note.title, extraClasses = listOf("task__text"))
 
                 // Only while collapsed: expanding shows the same tags with room
                 // around them, and both at once would be the same thing twice.
@@ -247,7 +247,7 @@ private fun NoteRow(
                         Span({
                             classes("pill", "pill--inline")
                             style {
-                                property("background-color", tag.background(TagShade.Inline))
+                                property("background-color", tag.background(SwatchShade.Inline))
                                 property("color", tag.color)
                             }
                         }) {
@@ -282,7 +282,7 @@ private fun NoteDetail(note: Note, tags: List<Tag>, onViewNote: () -> Unit) {
                     Span({
                         classes("pill")
                         style {
-                            property("background-color", tag.background(TagShade.Pill))
+                            property("background-color", tag.background(SwatchShade.Pill))
                             property("color", tag.color)
                         }
                     }) {

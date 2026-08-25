@@ -19,7 +19,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # `submodules: true`, or `keel/` checks out empty and the build fails
+      # resolving `io.github.bchmsl:keel` - keel is public, so no extra
+      # credentials are needed to fetch it.
       - uses: actions/checkout@v5
+        with:
+          submodules: true
 
       - uses: actions/setup-java@v5
         with:

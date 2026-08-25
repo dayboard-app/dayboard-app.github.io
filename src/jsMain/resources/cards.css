@@ -246,20 +246,10 @@
 }
 
 /* Breathing rather than blinking. It marks the timer as live without pulling the
-   eye back to it every second. */
+   eye back to it every second. keel's own `keel-pulse` keyframe, so there is one
+   definition of the effect rather than a private copy of it. */
 .timer__time--running {
-  animation: timer-pulse 2s ease-in-out infinite;
-}
-
-@keyframes timer-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.85;
-  }
+  animation: keel-pulse 2s ease-in-out infinite;
 }
 
 .timer__time--placeholder {

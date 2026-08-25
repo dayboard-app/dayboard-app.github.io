@@ -37,6 +37,9 @@ kotlin {
             // module reads, so consumers need them on their own compile classpath.
             api("org.jetbrains.compose.runtime:runtime:1.11.1")
             api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.11.0")
+            // `Settings.colorMode` is keel's `ColorMode`, read directly by the root
+            // module - same reasoning as the two dependencies above.
+            api("io.github.bchmsl:keel")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.11.0")
         }
 

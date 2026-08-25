@@ -6,18 +6,19 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import io.github.bchmsl.keel.color.SwatchShade
+import io.github.bchmsl.keel.components.FormattedText
+import io.github.bchmsl.keel.icons.Icon
+import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.data.ListDragController
 import io.github.dayboard.data.TasksController
 import io.github.dayboard.domain.model.Tag
-import io.github.dayboard.domain.model.TagShade
 import io.github.dayboard.domain.model.Task
 import io.github.dayboard.domain.model.background
 import io.github.dayboard.domain.model.hasDetail
 import io.github.dayboard.domain.model.subtaskProgress
-import io.github.dayboard.ui.components.FormattedText
-import io.github.dayboard.ui.icons.Icon
-import io.github.dayboard.ui.icons.LucideIcon
 import org.jetbrains.compose.web.attributes.InputType
+import org.jetbrains.compose.web.attributes.onSubmit as onSubmitAttribute
 import org.jetbrains.compose.web.attributes.placeholder
 import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
@@ -26,7 +27,6 @@ import org.jetbrains.compose.web.dom.Input
 import org.jetbrains.compose.web.dom.P
 import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
-import org.jetbrains.compose.web.attributes.onSubmit as onSubmitAttribute
 
 /**
  * The task list: an add box, a tag filter, the unfinished tasks, and the finished
@@ -140,7 +140,7 @@ private fun TagFilterRow(tags: List<Tag>, selectedId: String?, onSelect: (String
                     // is why it goes in as a plain string.
                     property(
                         "background-color",
-                        tag.background(if (on) TagShade.Selected else TagShade.Faint),
+                        tag.background(if (on) SwatchShade.Selected else SwatchShade.Faint),
                     )
                     property("color", tag.color)
                 }
@@ -305,7 +305,7 @@ private fun TaskRow(
             }) {
                 FormattedText(
                     text = task.text,
-                    classNames = listOfNotNull(
+                    extraClasses = listOfNotNull(
                         "task__text",
                         "task__text--done".takeIf { task.done },
                     ),
@@ -318,7 +318,7 @@ private fun TaskRow(
                         Span({
                             classes("pill", "pill--inline")
                             style {
-                                property("background-color", tag.background(TagShade.Inline))
+                                property("background-color", tag.background(SwatchShade.Inline))
                                 property("color", tag.color)
                             }
                         }) {
@@ -363,7 +363,7 @@ private fun TaskDetail(task: Task, tags: List<Tag>, subtasks: List<Task>, tasks:
                     Span({
                         classes("pill")
                         style {
-                            property("background-color", tag.background(TagShade.Pill))
+                            property("background-color", tag.background(SwatchShade.Pill))
                             property("color", tag.color)
                         }
                     }) {
@@ -391,7 +391,7 @@ private fun TaskDetail(task: Task, tags: List<Tag>, subtasks: List<Task>, tasks:
                             )
                             FormattedText(
                                 text = subtask.text,
-                                classNames = listOfNotNull(
+                                extraClasses = listOfNotNull(
                                     "subtask__text",
                                     "subtask__text--done".takeIf { subtask.done },
                                 ),

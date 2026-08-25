@@ -8,6 +8,10 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import io.github.bchmsl.keel.components.Card
+import io.github.bchmsl.keel.icons.Icon
+import io.github.bchmsl.keel.icons.LucideIcon
+import io.github.bchmsl.keel.theme.ThemeController
 import io.github.dayboard.data.ClockController
 import io.github.dayboard.data.DragController
 import io.github.dayboard.data.ListDragController
@@ -16,7 +20,6 @@ import io.github.dayboard.data.NotificationController
 import io.github.dayboard.data.SettingsController
 import io.github.dayboard.data.TagsController
 import io.github.dayboard.data.TasksController
-import io.github.dayboard.data.ThemeController
 import io.github.dayboard.data.TimerController
 import io.github.dayboard.data.WeatherController
 import io.github.dayboard.domain.model.BoardColumn
@@ -29,9 +32,6 @@ import io.github.dayboard.ui.dialogs.NoteEditDialog
 import io.github.dayboard.ui.dialogs.NoteViewDialog
 import io.github.dayboard.ui.dialogs.TaskEditDialog
 import io.github.dayboard.ui.dialogs.TaskViewDialog
-import io.github.dayboard.ui.components.Card
-import io.github.dayboard.ui.icons.Icon
-import io.github.dayboard.ui.icons.LucideIcon
 import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.H1

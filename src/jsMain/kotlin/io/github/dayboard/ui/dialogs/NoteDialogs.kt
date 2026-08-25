@@ -5,14 +5,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import io.github.bchmsl.keel.color.SwatchShade
+import io.github.bchmsl.keel.components.Dialog
+import io.github.bchmsl.keel.components.FormattedText
+import io.github.bchmsl.keel.components.FormattingField
+import io.github.bchmsl.keel.icons.Icon
+import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.data.NotesController
-import io.github.dayboard.domain.model.TagShade
 import io.github.dayboard.domain.model.background
 import io.github.dayboard.ui.cards.ICON_TINY
-import io.github.dayboard.ui.components.Dialog
-import io.github.dayboard.ui.components.FormattedText
-import io.github.dayboard.ui.icons.Icon
-import io.github.dayboard.ui.icons.LucideIcon
 import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.P
@@ -43,7 +44,7 @@ fun NoteEditDialog(noteId: String, notes: NotesController, onDismiss: () -> Unit
         Div({ classes("editor") }) {
             Div({ classes("editor__section") }) {
                 Div({ classes("editor__label") }) { Text("Title") }
-                FormattedField(
+                FormattingField(
                     resetKey = note.id,
                     initial = note.title,
                     ariaLabel = "Title",
@@ -53,7 +54,7 @@ fun NoteEditDialog(noteId: String, notes: NotesController, onDismiss: () -> Unit
 
             Div({ classes("editor__section") }) {
                 Div({ classes("editor__label") }) { Text("Content") }
-                FormattedField(
+                FormattingField(
                     resetKey = note.id,
                     initial = note.body.orEmpty(),
                     ariaLabel = "Content",
@@ -153,7 +154,7 @@ fun NoteViewDialog(
                         Span({
                             classes("pill")
                             style {
-                                property("background-color", tag.background(TagShade.Pill))
+                                property("background-color", tag.background(SwatchShade.Pill))
                                 property("color", tag.color)
                             }
                         }) {

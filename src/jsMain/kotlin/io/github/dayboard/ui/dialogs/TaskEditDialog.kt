@@ -6,15 +6,16 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import io.github.bchmsl.keel.components.Dialog
+import io.github.bchmsl.keel.components.FormattingField
+import io.github.bchmsl.keel.icons.Icon
+import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.data.ListDragController
 import io.github.dayboard.data.TasksController
 import io.github.dayboard.domain.model.Task
 import io.github.dayboard.ui.cards.DragHandleOrSpacer
 import io.github.dayboard.ui.cards.ICON_MICRO
 import io.github.dayboard.ui.cards.ICON_TINY
-import io.github.dayboard.ui.components.Dialog
-import io.github.dayboard.ui.icons.Icon
-import io.github.dayboard.ui.icons.LucideIcon
 import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.placeholder
 import org.jetbrains.compose.web.dom.Button
@@ -55,7 +56,7 @@ fun TaskEditDialog(
         Div({ classes("editor") }) {
             Div({ classes("editor__section") }) {
                 Div({ classes("editor__label") }) { Text("Title") }
-                FormattedField(
+                FormattingField(
                     resetKey = task.id,
                     initial = task.text,
                     ariaLabel = "Title",
@@ -65,7 +66,7 @@ fun TaskEditDialog(
 
             Div({ classes("editor__section") }) {
                 Div({ classes("editor__label") }) { Text("Notes") }
-                FormattedField(
+                FormattingField(
                     resetKey = task.id,
                     initial = task.body.orEmpty(),
                     ariaLabel = "Notes",
@@ -161,6 +162,10 @@ private fun SubtasksSection(task: Task, tasks: TasksController, drag: ListDragCo
                             }
 
                             "Escape" -> {
+                                // Stops propagation, or this would also reach the
+                                // dialog's own Escape listener and close the whole
+                                // dialog along with abandoning this one field.
+                                event.stopPropagation()
                                 adding = false
                                 draft = ""
                             }
@@ -246,8 +251,12 @@ private fun SubtaskRow(
                         }
                         // Escape abandons the edit. It has to be checked before the
                         // blur handler runs, which is why cancelling clears the
-                        // editing state rather than committing.
-                        "Escape" -> onCancelEditing()
+                        // editing state rather than committing. Stopped here too, or
+                        // it would also close the dialog this row sits inside.
+                        "Escape" -> {
+                            event.stopPropagation()
+                            onCancelEditing()
+                        }
                     }
                 }
                 onBlur { event ->

@@ -5,16 +5,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import io.github.dayboard.domain.model.DEFAULT_TAG_COLOR
-import io.github.dayboard.domain.model.TAG_COLORS
+import io.github.bchmsl.keel.color.SwatchShade
+import io.github.bchmsl.keel.color.Swatches
+import io.github.bchmsl.keel.icons.Icon
+import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.domain.model.TAG_EMOJI_MAX_LENGTH
 import io.github.dayboard.domain.model.Tag
-import io.github.dayboard.domain.model.TagShade
 import io.github.dayboard.domain.model.background
 import io.github.dayboard.ui.cards.ICON_MICRO
 import io.github.dayboard.ui.cards.ICON_TINY
-import io.github.dayboard.ui.icons.Icon
-import io.github.dayboard.ui.icons.LucideIcon
 import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.maxLength
 import org.jetbrains.compose.web.attributes.placeholder
@@ -52,7 +51,7 @@ fun TagsSection(
         if (attached.isNotEmpty()) {
             Div({ classes("editor__tags") }) {
                 attached.forEach { tag ->
-                    TagPill(tag, TagShade.Pill, "Remove tag ${tag.name}") { onToggle(tag.id) }
+                    TagPill(tag, SwatchShade.Pill, "Remove tag ${tag.name}") { onToggle(tag.id) }
                 }
             }
         }
@@ -60,7 +59,7 @@ fun TagsSection(
         if (available.isNotEmpty()) {
             Div({ classes("editor__tags") }) {
                 available.forEach { tag ->
-                    TagPill(tag, TagShade.Faint, "Add tag ${tag.name}", small = true) {
+                    TagPill(tag, SwatchShade.Faint, "Add tag ${tag.name}", small = true) {
                         onToggle(tag.id)
                     }
                 }
@@ -91,7 +90,7 @@ fun TagsSection(
 @Composable
 private fun TagPill(
     tag: Tag,
-    shade: TagShade,
+    shade: SwatchShade,
     ariaLabel: String,
     small: Boolean = false,
     onClick: () -> Unit,
@@ -130,7 +129,7 @@ private fun TagCreator(
 ) {
     var name by remember { mutableStateOf("") }
     var emoji by remember { mutableStateOf("") }
-    var color by remember { mutableStateOf(DEFAULT_TAG_COLOR) }
+    var color by remember { mutableStateOf(Swatches.Default) }
 
     Div({ classes("creator") }) {
         Div({ classes("creator__row") }) {
@@ -159,7 +158,7 @@ private fun TagCreator(
         }
 
         Div({ classes("creator__colors") }) {
-            TAG_COLORS.forEach { swatch ->
+            Swatches.All.forEach { swatch ->
                 Button({
                     classes(
                         *listOfNotNull("swatch", "swatch--on".takeIf { swatch == color })

@@ -6,26 +6,25 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import io.github.bchmsl.keel.color.SwatchShade
+import io.github.bchmsl.keel.color.Swatches
+import io.github.bchmsl.keel.components.Slider
+import io.github.bchmsl.keel.components.Switch
+import io.github.bchmsl.keel.icons.Icon
+import io.github.bchmsl.keel.icons.LucideIcon
+import io.github.bchmsl.keel.theme.ColorMode
+import io.github.bchmsl.keel.theme.ThemeController
 import io.github.dayboard.data.NotificationController
 import io.github.dayboard.data.SettingsController
 import io.github.dayboard.data.TagsController
-import io.github.dayboard.data.ThemeController
-import io.github.dayboard.domain.model.ColorMode
 import io.github.dayboard.domain.model.NotificationPermission
 import io.github.dayboard.domain.model.SettingRange
 import io.github.dayboard.domain.model.Settings
-import io.github.dayboard.domain.model.TAG_COLORS
 import io.github.dayboard.domain.model.TAG_EMOJI_MAX_LENGTH
 import io.github.dayboard.domain.model.Tag
-import io.github.dayboard.domain.model.TagShade
-import io.github.dayboard.domain.model.ThemeId
 import io.github.dayboard.domain.model.background
 import io.github.dayboard.ui.cards.ICON_SMALL
 import io.github.dayboard.ui.cards.ICON_TINY
-import io.github.dayboard.ui.components.Slider
-import io.github.dayboard.ui.components.Switch
-import io.github.dayboard.ui.icons.Icon
-import io.github.dayboard.ui.icons.LucideIcon
 import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.maxLength
 import org.jetbrains.compose.web.attributes.placeholder
@@ -300,8 +299,8 @@ private fun AppearanceSection(theme: ThemeController, settings: SettingsControll
         Div({ classes("panel__label") }) { Text("Theme") }
 
         Div({ classes("panel__themes") }) {
-            ThemeId.entries.forEach { option ->
-                val on = option == theme.themeId
+            theme.catalog.themes.forEach { option ->
+                val on = option == theme.theme
 
                 Button({
                     classes(*listOfNotNull("theme", "theme--on".takeIf { on }).toTypedArray())
@@ -310,8 +309,8 @@ private fun AppearanceSection(theme: ThemeController, settings: SettingsControll
                         // Written to both: the browser's copy paints instantly on the
                         // next load, before there is an account to ask, and the
                         // account's copy is what another device reads.
-                        theme.setThemeId(option)
-                        settings.update { it.copy(themeId = option) }
+                        theme.setTheme(option)
+                        settings.update { it.copy(themeId = option.id) }
                     }
                 }) {
                     Span({
@@ -438,7 +437,7 @@ private fun TagRow(
         Span({
             classes("pill")
             style {
-                property("background-color", tag.background(TagShade.Pill))
+                property("background-color", tag.background(SwatchShade.Pill))
                 property("color", tag.color)
             }
         }) {
@@ -518,7 +517,7 @@ private fun TagEditor(
         }
 
         Div({ classes("creator__colors") }) {
-            TAG_COLORS.forEach { swatch ->
+            Swatches.All.forEach { swatch ->
                 Button({
                     classes(
                         *listOfNotNull("swatch", "swatch--on".takeIf { swatch == color })
