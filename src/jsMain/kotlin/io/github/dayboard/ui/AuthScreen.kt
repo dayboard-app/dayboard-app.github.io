@@ -1,6 +1,12 @@
 package io.github.dayboard.ui
 
 import androidx.compose.runtime.Composable
+import io.github.bchmsl.keel.components.ButtonSize
+import io.github.bchmsl.keel.components.ButtonVariant
+import io.github.bchmsl.keel.components.Surface
+import io.github.bchmsl.keel.components.TextField
+import io.github.bchmsl.keel.dom.buttonClasses
+import io.github.bchmsl.keel.dom.classNames
 import io.github.bchmsl.keel.icons.Icon
 import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.presentation.AuthMode
@@ -9,14 +15,12 @@ import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.disabled
 import org.jetbrains.compose.web.attributes.minLength
 import org.jetbrains.compose.web.attributes.onSubmit
-import org.jetbrains.compose.web.attributes.placeholder
 import org.jetbrains.compose.web.attributes.required
 import org.jetbrains.compose.web.attributes.type
 import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Form
 import org.jetbrains.compose.web.dom.H1
-import org.jetbrains.compose.web.dom.Input
 import org.jetbrains.compose.web.dom.P
 import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
@@ -43,11 +47,12 @@ fun AuthScreen(
 ) {
     Div({ classes("auth") }) {
         Div({ classes("auth__brand") }) {
-            Icon(LucideIcon.Timer, size = 24)
+            Icon(LucideIcon.Timer, size = 24, className = "auth__brand-icon")
             Text("Dayboard")
         }
 
-        Div({ classes("auth__card") }) {
+        // `elevated`, which is the shadow this card had written out by hand.
+        Surface(elevated = true, attrs = { classNames("auth__card") }) {
             H1({ classes("auth__heading") }) { Text(mode.heading) }
             P({ classes("auth__subtext") }) { Text(mode.subtext) }
 
@@ -65,35 +70,45 @@ fun AuthScreen(
                 }
             }) {
                 Div({ classes("auth__field") }) {
-                    Icon(LucideIcon.Mail, size = 16)
-                    Input(InputType.Email) {
-                        classes("auth__input")
-                        placeholder("Email")
-                        required()
-                        value(email)
-                        onInput { onEmailChange(it.value) }
-                    }
+                    Icon(LucideIcon.Mail, size = 16, className = "auth__field-icon")
+                    TextField(
+                        value = email,
+                        onValueChange = onEmailChange,
+                        placeholder = "Email",
+                        type = InputType.Email,
+                        attrs = {
+                            classNames("auth__input")
+                            required()
+                        },
+                    )
                 }
 
                 Div({ classes("auth__field") }) {
-                    Icon(LucideIcon.Lock, size = 16)
-                    Input(InputType.Password) {
-                        classes("auth__input")
-                        placeholder("Password")
-                        required()
-                        // Firebase's own minimum, and the original's, so the browser
-                        // rejects a too-short password before a request is made.
-                        minLength(MIN_PASSWORD_LENGTH)
-                        value(password)
-                        onInput { onPasswordChange(it.value) }
-                    }
+                    Icon(LucideIcon.Lock, size = 16, className = "auth__field-icon")
+                    TextField(
+                        value = password,
+                        onValueChange = onPasswordChange,
+                        placeholder = "Password",
+                        type = InputType.Password,
+                        attrs = {
+                            classNames("auth__input")
+                            required()
+                            // Firebase's own minimum, and the original's, so the browser
+                            // rejects a too-short password before a request is made.
+                            minLength(MIN_PASSWORD_LENGTH)
+                        },
+                    )
                 }
 
                 error?.let { P({ classes("auth__error") }) { Text(it) } }
                 message?.let { P({ classes("auth__message") }) { Text(it) } }
 
+                // A raw button rather than keel's `Button`, because the content is a
+                // label with a trailing arrow that becomes a lone spinner mid-request,
+                // and the composable has a leading slot but no trailing one. The classes
+                // still come from keel, so a rename there fails to compile here.
                 Button({
-                    classes("auth__submit")
+                    classNames(buttonClasses())
                     type(ButtonType.Submit)
                     if (submitting) disabled()
                 }) {
@@ -110,8 +125,14 @@ fun AuthScreen(
 
             P({ classes("auth__toggle") }) {
                 Text(mode.togglePrompt)
+                // `Inline`, the one size that does not put a control's height into a
+                // sentence. Raw for consistency with the submit button above it, which
+                // has to be.
                 Button({
-                    classes("auth__toggle-action")
+                    classNames(
+                        "auth__toggle-action",
+                        buttonClasses(ButtonVariant.Link, ButtonSize.Inline),
+                    )
                     type(ButtonType.Button)
                     onClick { onToggleMode() }
                 }) {
