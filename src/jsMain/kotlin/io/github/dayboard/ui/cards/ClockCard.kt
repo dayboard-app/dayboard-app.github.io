@@ -1,6 +1,8 @@
 package io.github.dayboard.ui.cards
 
 import androidx.compose.runtime.Composable
+import io.github.bchmsl.keel.components.Spinner
+import io.github.bchmsl.keel.components.SpinnerSize
 import io.github.bchmsl.keel.icons.Icon
 import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.domain.model.Weather
@@ -85,7 +87,10 @@ private fun WeatherPill(weather: Weather, expanded: Boolean) {
 @Composable
 private fun LoadingWeatherPill() {
     Div({ classes("weather", "weather--loading") }) {
-        Icon(LucideIcon.LoaderCircle, size = LABEL_ICON, className = "spinner")
+        // keel's ring, at the size the rotated lucide glyph was. `Small` is 0.875rem,
+        // which is `LABEL_ICON` exactly - the same number, now read from the token
+        // rather than written next to it.
+        Spinner(size = SpinnerSize.Small)
         Span { Text("Loading weather...") }
     }
 }
