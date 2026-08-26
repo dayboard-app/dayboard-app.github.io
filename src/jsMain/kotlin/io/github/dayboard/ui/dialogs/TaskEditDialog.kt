@@ -9,10 +9,12 @@ import androidx.compose.runtime.setValue
 import io.github.bchmsl.keel.components.Button
 import io.github.bchmsl.keel.components.ButtonSize
 import io.github.bchmsl.keel.components.ButtonVariant
+import io.github.bchmsl.keel.components.CheckboxSize
 import io.github.bchmsl.keel.components.Dialog
 import io.github.bchmsl.keel.components.FormattingField
 import io.github.bchmsl.keel.components.IconButton
 import io.github.bchmsl.keel.components.TextField
+import io.github.bchmsl.keel.dom.checkboxClasses
 import io.github.bchmsl.keel.dom.classNames
 import io.github.bchmsl.keel.dom.inputClasses
 import io.github.bchmsl.keel.icons.Icon
@@ -222,17 +224,18 @@ private fun SubtaskRow(
     }) {
         DragHandleOrSpacer(onDragStart)
 
-        // A span rather than a button: whether a subtask is done is not editable
-        // here. It is shown so the list reads the same as everywhere else, and
-        // changed from the list or the view dialog.
+        // A span rather than keel's `Checkbox`: whether a subtask is done is not
+        // editable here. It is shown so the list reads the same as everywhere else,
+        // and changed from the list or the view dialog.
+        //
+        // keel's classes, and `aria-checked` because that is what its ticked look is
+        // keyed off - a box built by hand has to set it, which `checkboxClasses` says.
+        // On an `aria-hidden` element the attribute reaches nobody and is doing one
+        // job: telling the stylesheet this box is full. The alternative was keeping a
+        // `.checkbox--done` here, which would have shadowed keel's own rule.
         Span({
-            classes(
-                *listOfNotNull(
-                    "checkbox",
-                    "checkbox--small",
-                    "checkbox--done".takeIf { subtask.done },
-                ).toTypedArray(),
-            )
+            classNames(checkboxClasses(CheckboxSize.Small))
+            attr("aria-checked", subtask.done.toString())
             attr("aria-hidden", "true")
         }) {
             Icon(LucideIcon.Check, size = ICON_MICRO)

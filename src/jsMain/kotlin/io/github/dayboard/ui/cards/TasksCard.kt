@@ -7,14 +7,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import io.github.bchmsl.keel.color.SwatchShade
+import io.github.bchmsl.keel.components.Checkbox
+import io.github.bchmsl.keel.components.CheckboxSize
 import io.github.bchmsl.keel.components.FormattedText
+import io.github.bchmsl.keel.components.Pill
+import io.github.bchmsl.keel.components.PillButton
+import io.github.bchmsl.keel.components.PillSize
 import io.github.bchmsl.keel.icons.Icon
 import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.data.ListDragController
 import io.github.dayboard.data.TasksController
 import io.github.dayboard.domain.model.Tag
 import io.github.dayboard.domain.model.Task
-import io.github.dayboard.domain.model.background
 import io.github.dayboard.domain.model.hasDetail
 import io.github.dayboard.domain.model.subtaskProgress
 import org.jetbrains.compose.web.attributes.InputType
@@ -112,43 +116,45 @@ private fun AddTaskForm(draft: String, onDraftChange: (String) -> Unit, onSubmit
     }
 }
 
+/**
+ * The tag filter: an "All" chip, then one per tag.
+ *
+ * Shared with the notes card, which filters by the same tag vocabulary and had this
+ * row written out a second time. keel's `PillButton` made the two bodies identical,
+ * so keeping both would have been a copy of a copy.
+ */
 @Composable
-private fun TagFilterRow(tags: List<Tag>, selectedId: String?, onSelect: (String?) -> Unit) {
+internal fun TagFilterRow(tags: List<Tag>, selectedId: String?, onSelect: (String?) -> Unit) {
     Div({ classes("tasks__filters") }) {
         Icon(LucideIcon.Filter, size = ICON_TINY, className = "tasks__filter-icon")
 
-        Button({
-            classes(
-                *listOfNotNull("chip", "chip--all", "chip--on".takeIf { selectedId == null })
-                    .toTypedArray(),
-            )
-            attr("aria-pressed", (selectedId == null).toString())
-            onClick { onSelect(null) }
-        }) {
-            Text("All")
-        }
+        // A null colour is keel's pill for no particular tag, and it takes the theme's
+        // own ink. Passing a neutral hex instead could not work: it would stay the one
+        // colour across all twelve palettes.
+        PillButton(
+            label = "All",
+            color = null,
+            ariaLabel = "Show all",
+            onClick = { onSelect(null) },
+            selected = selectedId == null,
+        )
 
         tags.forEach { tag ->
             val on = tag.id == selectedId
 
-            Button({
-                classes(*listOfNotNull("chip", "chip--on".takeIf { on }).toTypedArray())
-                attr("aria-pressed", on.toString())
-                style {
-                    // The one colour in the app that is not a theme token: it is the
-                    // user's own choice and has to survive exactly as stored, which
-                    // is why it goes in as a plain string.
-                    property(
-                        "background-color",
-                        tag.background(if (on) SwatchShade.Selected else SwatchShade.Faint),
-                    )
-                    property("color", tag.color)
-                }
-                onClick { onSelect(tag.id) }
-            }) {
-                tag.emoji?.let { Span({ classes("chip__emoji") }) { Text(it) } }
-                Text(tag.name)
-            }
+            PillButton(
+                label = tag.name,
+                color = tag.color,
+                ariaLabel = "Filter by ${tag.name}",
+                onClick = { onSelect(tag.id) },
+                // Two shades rather than one, which `SwatchShade` names for exactly
+                // this: the fill carries part of the on/off signal, and the rest is
+                // keel's dim and ring. A tag's colour is the user's own and goes in
+                // as stored, which is why it is inline and not a token.
+                shade = if (on) SwatchShade.Selected else SwatchShade.Faint,
+                emoji = tag.emoji,
+                selected = on,
+            )
         }
     }
 }
@@ -277,10 +283,10 @@ private fun TaskRow(
         Div({ classes("task__row") }) {
             DragHandleOrSpacer(onDragStart)
 
-            TaskCheckbox(
-                done = task.done,
-                label = if (task.done) "Mark as not done" else "Mark as done",
-                onToggle = { tasks.toggleDone(task.id) },
+            Checkbox(
+                checked = task.done,
+                onCheckedChange = { tasks.toggleDone(task.id) },
+                ariaLabel = if (task.done) "Mark as not done" else "Mark as done",
             )
 
             if (hasDetail) {
@@ -315,16 +321,13 @@ private fun TaskRow(
                 // around them, and both at once would be the same information twice.
                 if (!open) {
                     tags.forEach { tag ->
-                        Span({
-                            classes("pill", "pill--inline")
-                            style {
-                                property("background-color", tag.background(SwatchShade.Inline))
-                                property("color", tag.color)
-                            }
-                        }) {
-                            tag.emoji?.let { Span({ classes("pill__emoji") }) { Text(it) } }
-                            Text(tag.name)
-                        }
+                        Pill(
+                            label = tag.name,
+                            color = tag.color,
+                            shade = SwatchShade.Inline,
+                            emoji = tag.emoji,
+                            size = PillSize.Inline,
+                        )
                     }
 
                     if (subtasks.isNotEmpty()) {
@@ -360,16 +363,7 @@ private fun TaskDetail(task: Task, tags: List<Tag>, subtasks: List<Task>, tasks:
         if (tags.isNotEmpty()) {
             Div({ classes("task__tags") }) {
                 tags.forEach { tag ->
-                    Span({
-                        classes("pill")
-                        style {
-                            property("background-color", tag.background(SwatchShade.Pill))
-                            property("color", tag.color)
-                        }
-                    }) {
-                        tag.emoji?.let { Span({ classes("pill__emoji") }) { Text(it) } }
-                        Text(tag.name)
-                    }
+                    Pill(label = tag.name, color = tag.color, emoji = tag.emoji)
                 }
             }
         }
@@ -383,11 +377,15 @@ private fun TaskDetail(task: Task, tags: List<Tag>, subtasks: List<Task>, tasks:
                 subtasks.forEach { subtask ->
                     key(subtask.id) {
                         Div({ classes("subtask") }) {
-                            TaskCheckbox(
-                                done = subtask.done,
-                                label = if (subtask.done) "Mark as not done" else "Mark as done",
-                                onToggle = { tasks.toggleDone(subtask.id) },
-                                small = true,
+                            Checkbox(
+                                checked = subtask.done,
+                                onCheckedChange = { tasks.toggleDone(subtask.id) },
+                                ariaLabel = if (subtask.done) {
+                                    "Mark as not done"
+                                } else {
+                                    "Mark as done"
+                                },
+                                size = CheckboxSize.Small,
                             )
                             FormattedText(
                                 text = subtask.text,
@@ -404,29 +402,12 @@ private fun TaskDetail(task: Task, tags: List<Tag>, subtasks: List<Task>, tasks:
     }
 }
 
-@Composable
-internal fun TaskCheckbox(
-    done: Boolean,
-    label: String,
-    onToggle: () -> Unit,
-    small: Boolean = false,
-) {
-    Button({
-        classes(
-            *listOfNotNull(
-                "checkbox",
-                "checkbox--done".takeIf { done },
-                "checkbox--small".takeIf { small },
-            ).toTypedArray(),
-        )
-        attr("role", "checkbox")
-        attr("aria-checked", done.toString())
-        attr("aria-label", label)
-        onClick { onToggle() }
-    }) {
-        Icon(LucideIcon.Check, size = if (small) ICON_MICRO else ICON_TINY)
-    }
-}
+/* `TaskCheckbox` used to live here: a button carrying `role="checkbox"`, a tick hidden
+   by colour, and a `--small` size for a subtask row. That is keel's `Checkbox`, down to
+   the two tick sizes - it was the thing keel's was built from. The one difference is
+   which attribute marks a ticked box: keel reads `aria-checked`, where this read a
+   `--done` class beside it, so the state the eye sees and the state a screen reader
+   hears can no longer drift apart. */
 
 /**
  * The grip, or the space one would take.

@@ -8,13 +8,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import io.github.bchmsl.keel.color.SwatchShade
 import io.github.bchmsl.keel.components.FormattedText
+import io.github.bchmsl.keel.components.Pill
+import io.github.bchmsl.keel.components.PillSize
 import io.github.bchmsl.keel.icons.Icon
 import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.data.ListDragController
 import io.github.dayboard.data.NotesController
 import io.github.dayboard.domain.model.Note
 import io.github.dayboard.domain.model.Tag
-import io.github.dayboard.domain.model.background
 import io.github.dayboard.domain.model.hasDetail
 import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.onSubmit as onSubmitAttribute
@@ -59,7 +60,7 @@ fun NotesCard(
         )
 
         if (notes.allTags.isNotEmpty()) {
-            NoteFilterRow(
+            TagFilterRow(
                 tags = notes.allTags,
                 selectedId = notes.filterTagId,
                 onSelect = notes::setFilter,
@@ -115,43 +116,10 @@ private fun AddNoteForm(draft: String, onDraftChange: (String) -> Unit, onSubmit
     }
 }
 
-@Composable
-private fun NoteFilterRow(tags: List<Tag>, selectedId: String?, onSelect: (String?) -> Unit) {
-    Div({ classes("tasks__filters") }) {
-        Icon(LucideIcon.Filter, size = ICON_TINY, className = "tasks__filter-icon")
-
-        Button({
-            classes(
-                *listOfNotNull("chip", "chip--all", "chip--on".takeIf { selectedId == null })
-                    .toTypedArray(),
-            )
-            attr("aria-pressed", (selectedId == null).toString())
-            onClick { onSelect(null) }
-        }) {
-            Text("All")
-        }
-
-        tags.forEach { tag ->
-            val on = tag.id == selectedId
-
-            Button({
-                classes(*listOfNotNull("chip", "chip--on".takeIf { on }).toTypedArray())
-                attr("aria-pressed", on.toString())
-                style {
-                    property(
-                        "background-color",
-                        tag.background(if (on) SwatchShade.Selected else SwatchShade.Faint),
-                    )
-                    property("color", tag.color)
-                }
-                onClick { onSelect(tag.id) }
-            }) {
-                tag.emoji?.let { Span({ classes("chip__emoji") }) { Text(it) } }
-                Text(tag.name)
-            }
-        }
-    }
-}
+/* `NoteFilterRow` used to live here, and it was `TagFilterRow` again: the same row,
+   over the same tag vocabulary, differing only in which controller it called. Once
+   both were keel's `PillButton` the two bodies were identical, so the tasks card's is
+   the one that remains. */
 
 @Composable
 private fun NotesNotice(content: @Composable () -> Unit) {
@@ -244,16 +212,13 @@ private fun NoteRow(
                 // around them, and both at once would be the same thing twice.
                 if (!open) {
                     tags.forEach { tag ->
-                        Span({
-                            classes("pill", "pill--inline")
-                            style {
-                                property("background-color", tag.background(SwatchShade.Inline))
-                                property("color", tag.color)
-                            }
-                        }) {
-                            tag.emoji?.let { Span({ classes("pill__emoji") }) { Text(it) } }
-                            Text(tag.name)
-                        }
+                        Pill(
+                            label = tag.name,
+                            color = tag.color,
+                            shade = SwatchShade.Inline,
+                            emoji = tag.emoji,
+                            size = PillSize.Inline,
+                        )
                     }
                 }
             }
@@ -279,16 +244,7 @@ private fun NoteDetail(note: Note, tags: List<Tag>, onViewNote: () -> Unit) {
         if (tags.isNotEmpty()) {
             Div({ classes("task__tags") }) {
                 tags.forEach { tag ->
-                    Span({
-                        classes("pill")
-                        style {
-                            property("background-color", tag.background(SwatchShade.Pill))
-                            property("color", tag.color)
-                        }
-                    }) {
-                        tag.emoji?.let { Span({ classes("pill__emoji") }) { Text(it) } }
-                        Text(tag.name)
-                    }
+                    Pill(label = tag.name, color = tag.color, emoji = tag.emoji)
                 }
             }
         }

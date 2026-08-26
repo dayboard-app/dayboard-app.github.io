@@ -5,17 +5,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import io.github.bchmsl.keel.color.SwatchShade
 import io.github.bchmsl.keel.components.Button
 import io.github.bchmsl.keel.components.ButtonSize
 import io.github.bchmsl.keel.components.ButtonVariant
 import io.github.bchmsl.keel.components.Dialog
 import io.github.bchmsl.keel.components.FormattedText
 import io.github.bchmsl.keel.components.FormattingField
+import io.github.bchmsl.keel.components.Pill
 import io.github.bchmsl.keel.icons.Icon
 import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.data.NotesController
-import io.github.dayboard.domain.model.background
 import io.github.dayboard.ui.cards.ICON_TINY
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.P
@@ -152,16 +151,7 @@ fun NoteViewDialog(
             if (tags.isNotEmpty()) {
                 Div({ classes("viewer__tags") }) {
                     tags.forEach { tag ->
-                        Span({
-                            classes("pill")
-                            style {
-                                property("background-color", tag.background(SwatchShade.Pill))
-                                property("color", tag.color)
-                            }
-                        }) {
-                            tag.emoji?.let { Span({ classes("pill__emoji") }) { Text(it) } }
-                            Text(tag.name)
-                        }
+                        Pill(label = tag.name, color = tag.color, emoji = tag.emoji)
                     }
                 }
             }

@@ -1,21 +1,11 @@
 package io.github.dayboard.domain.model
 
-import io.github.bchmsl.keel.color.SwatchShade
 import io.github.bchmsl.keel.color.Swatches
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
 
 class TagTest {
-
-    @Test
-    fun background_delegatesToKeelsSwatchBackground() {
-        // The shades themselves are keel's own contract, tested in `keel`; this only
-        // proves the delegate wires a tag's stored colour through to it.
-        val tag = Tag(id = "1", name = "Work", color = "#6366f1")
-
-        assertEquals("#6366f120", tag.background(SwatchShade.Pill))
-    }
 
     @Test
     fun findByName_ignoresCaseAndSurroundingSpace() {

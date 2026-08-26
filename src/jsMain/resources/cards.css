@@ -484,42 +484,16 @@
   color: hsl(var(--muted-foreground) / 0.4);
 }
 
-.chip {
-  border: none;
-  border-radius: 9999px;
-  padding: 0.125rem 0.625rem;
-  background-color: transparent;
-  font-family: inherit;
-  font-size: 0.625rem;
-  font-weight: 500;
-  cursor: pointer;
-  opacity: 0.6;
-  transition: opacity 150ms ease;
-}
+/* The filter chips were `.chip` here and `.pill` in keel: the same shape, the same
+   type size, the same 0.6 dim when off and the same 1px ring when on, under two names.
+   They are keel's `PillButton` now, which is also what makes the row a real toggle set
+   - each chip carries an `aria-label` saying what pressing it filters, where the class
+   version left a screen reader with a tag name and an `aria-pressed`.
 
-.chip--on {
-  opacity: 1;
-  box-shadow: 0 0 0 1px hsl(var(--background)), 0 0 0 2px currentColor;
-}
-
-.chip:hover {
-  opacity: 1;
-}
-
-/* The "All" chip has no tag colour of its own, so it borrows the text colour. */
-.chip--all {
-  color: hsl(var(--muted-foreground) / 0.6);
-}
-
-.chip--all.chip--on {
-  background-color: hsl(var(--foreground) / 0.1);
-  color: hsl(var(--foreground));
-  box-shadow: none;
-}
-
-.chip__emoji {
-  margin-right: 0.125rem;
-}
+   Two small things changed with it. The "All" chip keeps keel's faint fill even while
+   off, where this made it bare text, so it now reads as one of the pills rather than as
+   a label in front of them. And a selected "All" takes the same ring as every other
+   selected chip; `.chip--all.chip--on` used to switch the ring off. */
 
 /* ----- notices ----- */
 
@@ -601,48 +575,21 @@
   cursor: grabbing;
 }
 
-.checkbox {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 1.25rem;
-  height: 1.25rem;
-  border: 2px solid hsl(var(--muted-foreground) / 0.3);
-  border-radius: 0.375rem;
-  background-color: transparent;
-  /* Transparent rather than absent, so the tick can preview on hover without the
-     row reflowing. */
-  color: transparent;
-  cursor: pointer;
-  transition:
-    border-color 150ms ease,
-    background-color 150ms ease,
-    color 150ms ease,
-    transform 150ms ease;
-}
+/* The tick box used to be written out here, at both sizes. It is keel's `.checkbox`
+   now, which is the same box down to the last value - the same 1.25rem and 1rem, the
+   same 2px border at 30% of the muted ink, the same radii, the same tick hidden by
+   colour rather than by presence, and the same hover growth that the small size gives
+   up. keel's was built from this one.
 
-.checkbox--small {
-  width: 1rem;
-  height: 1rem;
-  border-radius: 0.25rem;
-}
+   Leaving it here was not an option even as duplication: this sheet loads after
+   keel's, so a `.checkbox` in it shadowed keel's rule outright. Every Dayboard box was
+   silently using this copy and none of keel's improvements - it has a focus ring and a
+   disabled state, and its hover sits inside `@media (hover: hover)` so it does not
+   stick on touch.
 
-.checkbox--done {
-  border-color: hsl(var(--primary));
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-}
-
-button.checkbox:hover:not(.checkbox--done) {
-  border-color: hsl(var(--primary));
-  color: hsl(var(--primary));
-  transform: scale(1.1);
-}
-
-button.checkbox--small:hover:not(.checkbox--done) {
-  transform: none;
-}
+   The one difference is which attribute means "ticked". keel reads `aria-checked`
+   where this read a `--done` class beside it, so the state the eye sees and the state
+   a screen reader hears can no longer disagree. */
 
 .task__chevron {
   display: inline-flex;
