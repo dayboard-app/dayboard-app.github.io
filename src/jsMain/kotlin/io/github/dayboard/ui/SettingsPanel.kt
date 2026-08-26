@@ -8,8 +8,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import io.github.bchmsl.keel.color.SwatchShade
 import io.github.bchmsl.keel.color.Swatches
+import io.github.bchmsl.keel.components.Button
+import io.github.bchmsl.keel.components.ButtonSize
+import io.github.bchmsl.keel.components.ButtonVariant
 import io.github.bchmsl.keel.components.Slider
 import io.github.bchmsl.keel.components.Switch
+import io.github.bchmsl.keel.components.TextField
+import io.github.bchmsl.keel.dom.classNames
 import io.github.bchmsl.keel.icons.Icon
 import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.bchmsl.keel.theme.ColorMode
@@ -28,13 +33,13 @@ import io.github.dayboard.ui.cards.ICON_TINY
 import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.maxLength
 import org.jetbrains.compose.web.attributes.placeholder
-import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.H2
 import org.jetbrains.compose.web.dom.Input
 import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
 import org.w3c.dom.HTMLInputElement
+import org.jetbrains.compose.web.dom.Button as RawButton
 
 /**
  * Everything the user can configure, in a panel that slides in from the right.
@@ -75,7 +80,7 @@ fun SettingsPanel(
     }) {
         Div({ classes("panel__header") }) {
             H2({ classes("panel__title") }) { Text("Settings") }
-            Button({
+            RawButton({
                 classes("panel__close")
                 attr("aria-label", "Close")
                 onClick { onDismiss() }
@@ -110,7 +115,7 @@ fun SettingsPanel(
             }
 
             Div({ classes("panel__sign-out") }) {
-                Button({
+                RawButton({
                     classes("panel__sign-out-button")
                     onClick { onSignOut() }
                 }) {
@@ -212,7 +217,7 @@ private fun CityField(city: String?, onCommit: (String?) -> Unit) {
 
                 // Only worth offering when there is something to clear.
                 if (city != null) {
-                    Button({
+                    RawButton({
                         classes("panel__auto-button")
                         attr("aria-label", "Detect my location")
                         onClick { onCommit(null) }
@@ -302,7 +307,7 @@ private fun AppearanceSection(theme: ThemeController, settings: SettingsControll
             theme.catalog.themes.forEach { option ->
                 val on = option == theme.theme
 
-                Button({
+                RawButton({
                     classes(*listOfNotNull("theme", "theme--on".takeIf { on }).toTypedArray())
                     attr("aria-pressed", on.toString())
                     onClick {
@@ -328,7 +333,7 @@ private fun AppearanceSection(theme: ThemeController, settings: SettingsControll
             ColorMode.entries.forEach { option ->
                 val on = option == theme.colorMode
 
-                Button({
+                RawButton({
                     classes(*listOfNotNull("mode", "mode--on".takeIf { on }).toTypedArray())
                     attr("aria-pressed", on.toString())
                     onClick {
@@ -367,7 +372,7 @@ private fun NotificationsSection(notifications: NotificationController) {
                 Text("Blocked by this browser. Allow notifications in its site settings.")
             }
 
-            NotificationPermission.Default -> Button({
+            NotificationPermission.Default -> RawButton({
                 classes("panel__enable-button")
                 onClick { notifications.enable() }
             }) {
@@ -446,27 +451,27 @@ private fun TagRow(
         }
 
         if (confirming) {
-            Button({
+            RawButton({
                 classes("panel__tag-danger")
                 onClick { onDelete() }
             }) {
                 Text("Delete")
             }
-            Button({
+            RawButton({
                 classes("panel__tag-cancel")
                 onClick { onCancelDelete() }
             }) {
                 Text("No")
             }
         } else {
-            Button({
+            RawButton({
                 classes("panel__tag-action")
                 attr("aria-label", "Edit tag ${tag.name}")
                 onClick { onEdit() }
             }) {
                 Icon(LucideIcon.Pencil, size = ICON_TINY)
             }
-            Button({
+            RawButton({
                 classes("panel__tag-action", "panel__tag-action--danger")
                 attr("aria-label", "Delete tag ${tag.name}")
                 onClick { onAskDelete() }
@@ -489,36 +494,43 @@ private fun TagEditor(
 
     Div({ classes("creator") }) {
         Div({ classes("creator__row") }) {
-            Input(InputType.Text) {
-                classes("input", "creator__emoji")
-                value(emoji)
-                placeholder("😊")
-                maxLength(TAG_EMOJI_MAX_LENGTH)
-                attr("aria-label", "Tag emoji")
-                onInput { event -> emoji = event.value }
-            }
+            TextField(
+                value = emoji,
+                onValueChange = { emoji = it },
+                placeholder = "\uD83D\uDE0A",
+                ariaLabel = "Tag emoji",
+                attrs = {
+                    classNames("creator__emoji")
+                    maxLength(TAG_EMOJI_MAX_LENGTH)
+                },
+            )
 
-            Input(InputType.Text) {
-                classes("input")
-                value(name)
-                attr("aria-label", "Tag name")
-                onInput { event -> name = event.value }
-                onKeyDown { event ->
-                    when (event.key) {
-                        "Enter" -> if (name.isNotBlank()) {
-                            event.preventDefault()
-                            onSave(name, color, emoji)
+            TextField(
+                value = name,
+                onValueChange = { name = it },
+                ariaLabel = "Tag name",
+                attrs = {
+                    onKeyDown { event ->
+                        when (event.key) {
+                            "Enter" -> if (name.isNotBlank()) {
+                                event.preventDefault()
+                                onSave(name, color, emoji)
+                            }
+
+                            "Escape" -> onCancel()
                         }
-
-                        "Escape" -> onCancel()
                     }
-                }
-            }
+                },
+            )
         }
 
         Div({ classes("creator__colors") }) {
             Swatches.All.forEach { swatch ->
-                Button({
+                // `RawButton` is Compose HTML's own `Button`, aliased because keel's is
+                // imported here too. A colour swatch is a 1rem circle with no label and
+                // no ink, which keel has no component for. The panel's other raw buttons
+                // above are not that - they are simply not on keel yet.
+                RawButton({
                     classes(
                         *listOfNotNull("swatch", "swatch--on".takeIf { swatch == color })
                             .toTypedArray(),
@@ -532,20 +544,19 @@ private fun TagEditor(
         }
 
         Div({ classes("creator__row") }) {
-            Button({
-                classes("editor__primary-button")
+            Button(
+                label = "Save",
+                onClick = { onSave(name, color, emoji) },
+                size = ButtonSize.ExtraSmall,
                 // A tag with no name is a pill nobody could tell from another.
-                if (name.isBlank()) attr("disabled", "")
-                onClick { onSave(name, color, emoji) }
-            }) {
-                Text("Save")
-            }
-            Button({
-                classes("editor__ghost-button")
-                onClick { onCancel() }
-            }) {
-                Text("Cancel")
-            }
+                enabled = name.isNotBlank(),
+            )
+            Button(
+                label = "Cancel",
+                onClick = onCancel,
+                variant = ButtonVariant.Quiet,
+                size = ButtonSize.ExtraSmall,
+            )
         }
     }
 }

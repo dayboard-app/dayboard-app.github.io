@@ -6,8 +6,15 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import io.github.bchmsl.keel.components.Button
+import io.github.bchmsl.keel.components.ButtonSize
+import io.github.bchmsl.keel.components.ButtonVariant
 import io.github.bchmsl.keel.components.Dialog
 import io.github.bchmsl.keel.components.FormattingField
+import io.github.bchmsl.keel.components.IconButton
+import io.github.bchmsl.keel.components.TextField
+import io.github.bchmsl.keel.dom.classNames
+import io.github.bchmsl.keel.dom.inputClasses
 import io.github.bchmsl.keel.icons.Icon
 import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.data.ListDragController
@@ -17,8 +24,6 @@ import io.github.dayboard.ui.cards.DragHandleOrSpacer
 import io.github.dayboard.ui.cards.ICON_MICRO
 import io.github.dayboard.ui.cards.ICON_TINY
 import org.jetbrains.compose.web.attributes.InputType
-import org.jetbrains.compose.web.attributes.placeholder
-import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Input
 import org.jetbrains.compose.web.dom.Span
@@ -141,56 +146,57 @@ private fun SubtasksSection(task: Task, tasks: TasksController, drag: ListDragCo
 
         if (adding) {
             Div({ classes("editor__row") }) {
-                Input(InputType.Text) {
-                    classes("input")
-                    value(draft)
-                    placeholder("Subtask title...")
-                    attr("aria-label", "Subtask title")
-                    ref { element ->
-                        element.focus()
-                        onDispose { }
-                    }
-                    onInput { event -> draft = event.value }
-                    onKeyDown { event ->
-                        when (event.key) {
-                            "Enter" -> {
-                                event.preventDefault()
-                                tasks.addSubtask(task.id, draft)
-                                // The form stays open: adding subtasks is something
-                                // people do several of in a row.
-                                draft = ""
-                            }
+                TextField(
+                    value = draft,
+                    onValueChange = { draft = it },
+                    placeholder = "Subtask title...",
+                    ariaLabel = "Subtask title",
+                    attrs = {
+                        ref { element ->
+                            element.focus()
+                            onDispose { }
+                        }
+                        onKeyDown { event ->
+                            when (event.key) {
+                                "Enter" -> {
+                                    event.preventDefault()
+                                    tasks.addSubtask(task.id, draft)
+                                    // The form stays open: adding subtasks is something
+                                    // people do several of in a row.
+                                    draft = ""
+                                }
 
-                            "Escape" -> {
-                                // Stops propagation, or this would also reach the
-                                // dialog's own Escape listener and close the whole
-                                // dialog along with abandoning this one field.
-                                event.stopPropagation()
-                                adding = false
-                                draft = ""
+                                "Escape" -> {
+                                    // Stops propagation, or this would also reach the
+                                    // dialog's own Escape listener and close the whole
+                                    // dialog along with abandoning this one field.
+                                    event.stopPropagation()
+                                    adding = false
+                                    draft = ""
+                                }
                             }
                         }
-                    }
-                }
-                Button({
-                    classes("editor__primary-button")
-                    if (draft.isBlank()) attr("disabled", "")
-                    onClick {
+                    },
+                )
+                Button(
+                    label = "Add",
+                    onClick = {
                         tasks.addSubtask(task.id, draft)
                         draft = ""
-                    }
-                }) {
-                    Text("Add")
-                }
+                    },
+                    size = ButtonSize.ExtraSmall,
+                    enabled = draft.isNotBlank(),
+                )
             }
         } else {
-            Button({
-                classes("editor__ghost-button")
-                onClick { adding = true }
-            }) {
-                Icon(LucideIcon.Plus, size = ICON_TINY)
-                Text("Add subtask")
-            }
+            Button(
+                label = "Add subtask",
+                onClick = { adding = true },
+                variant = ButtonVariant.Quiet,
+                size = ButtonSize.ExtraSmall,
+                attrs = { classNames("editor__inline-action") },
+                leading = { Icon(LucideIcon.Plus, size = ICON_TINY) },
+            )
         }
     }
 }
@@ -233,8 +239,12 @@ private fun SubtaskRow(
         }
 
         if (editing) {
+            // A raw `Input` rather than keel's `TextField`, which binds `value` to
+            // state. This field is deliberately uncontrolled: the row's text is
+            // written once through `ref` and read back on Enter or blur, so typing is
+            // never at the mercy of a recomposition. The class still comes from keel.
             Input(InputType.Text) {
-                classes("input", "subtask__input")
+                classNames(inputClasses(), "subtask__input")
                 attr("aria-label", "Subtask title")
                 ref { element ->
                     element.value = subtask.text
@@ -276,11 +286,13 @@ private fun SubtaskRow(
             }
         }
 
-        Button({
-            classes("subtask__delete")
-            attr("aria-label", "Delete subtask")
-            onClick { onDelete() }
-        }) {
+        IconButton(
+            ariaLabel = "Delete subtask",
+            onClick = onDelete,
+            variant = ButtonVariant.QuietDestructive,
+            size = ButtonSize.IconExtraSmall,
+            attrs = { classNames("subtask__delete") },
+        ) {
             Icon(LucideIcon.X, size = ICON_TINY)
         }
     }
@@ -300,26 +312,28 @@ private fun DeleteSection(onDelete: () -> Unit) {
     Div({ classes("editor__delete") }) {
         if (confirming) {
             Span({ classes("editor__warning") }) { Text("Delete this task and all its subtasks?") }
-            Button({
-                classes("editor__danger-button")
-                onClick { onDelete() }
-            }) {
-                Text("Delete")
-            }
-            Button({
-                classes("editor__ghost-button")
-                onClick { confirming = false }
-            }) {
-                Text("Cancel")
-            }
+            Button(
+                label = "Delete",
+                onClick = onDelete,
+                variant = ButtonVariant.Destructive,
+                size = ButtonSize.ExtraSmall,
+            )
+            Button(
+                label = "Cancel",
+                onClick = { confirming = false },
+                variant = ButtonVariant.Quiet,
+                size = ButtonSize.ExtraSmall,
+            )
         } else {
-            Button({
-                classes("editor__ghost-button", "editor__ghost-button--danger")
-                onClick { confirming = true }
-            }) {
-                Icon(LucideIcon.Trash2, size = ICON_TINY)
-                Text("Delete task")
-            }
+            // `QuietDestructive`, not `Destructive`: this press only asks the
+            // question. The solid red belongs on the one above, which answers it.
+            Button(
+                label = "Delete task",
+                onClick = { confirming = true },
+                variant = ButtonVariant.QuietDestructive,
+                size = ButtonSize.ExtraSmall,
+                leading = { Icon(LucideIcon.Trash2, size = ICON_TINY) },
+            )
         }
     }
 }

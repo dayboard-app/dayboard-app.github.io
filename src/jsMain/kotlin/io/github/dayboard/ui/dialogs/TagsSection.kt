@@ -7,21 +7,23 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import io.github.bchmsl.keel.color.SwatchShade
 import io.github.bchmsl.keel.color.Swatches
+import io.github.bchmsl.keel.components.Button
+import io.github.bchmsl.keel.components.ButtonSize
+import io.github.bchmsl.keel.components.ButtonVariant
+import io.github.bchmsl.keel.components.PillButton
+import io.github.bchmsl.keel.components.PillSize
+import io.github.bchmsl.keel.components.TextField
+import io.github.bchmsl.keel.dom.classNames
 import io.github.bchmsl.keel.icons.Icon
 import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.domain.model.TAG_EMOJI_MAX_LENGTH
 import io.github.dayboard.domain.model.Tag
-import io.github.dayboard.domain.model.background
 import io.github.dayboard.ui.cards.ICON_MICRO
 import io.github.dayboard.ui.cards.ICON_TINY
-import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.maxLength
-import org.jetbrains.compose.web.attributes.placeholder
-import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
-import org.jetbrains.compose.web.dom.Input
-import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
+import org.jetbrains.compose.web.dom.Button as RawButton
 
 /**
  * The tag controls shared by the task and note editors.
@@ -75,18 +77,25 @@ fun TagsSection(
                 },
             )
         } else {
-            Button({
-                classes("editor__ghost-button")
-                attr("type", "button")
-                onClick { creating = true }
-            }) {
-                Icon(LucideIcon.Plus, size = ICON_TINY)
-                Text("New tag")
-            }
+            Button(
+                label = "New tag",
+                onClick = { creating = true },
+                variant = ButtonVariant.Quiet,
+                size = ButtonSize.ExtraSmall,
+                attrs = { classNames("editor__inline-action") },
+                leading = { Icon(LucideIcon.Plus, size = ICON_TINY) },
+            )
         }
     }
 }
 
+/**
+ * A [Tag] as keel's `PillButton`.
+ *
+ * The fill and the ink come from the tag's own colour, which keel resolves from
+ * [shade] - so the two shades this section uses, a full pill for an attached tag and a
+ * faint one for an available tag, are the same component at two strengths.
+ */
 @Composable
 private fun TagPill(
     tag: Tag,
@@ -95,24 +104,17 @@ private fun TagPill(
     small: Boolean = false,
     onClick: () -> Unit,
 ) {
-    Button({
-        classes(
-            *listOfNotNull("pill", "pill--button", "pill--small".takeIf { small })
-                .toTypedArray(),
-        )
-        attr("type", "button")
-        attr("aria-label", ariaLabel)
-        style {
-            property("background-color", tag.background(shade))
-            property("color", tag.color)
-        }
-        onClick { onClick() }
-    }) {
-        tag.emoji?.let { Span({ classes("pill__emoji") }) { Text(it) } }
-        Text(tag.name)
+    PillButton(
+        label = tag.name,
+        color = tag.color,
+        ariaLabel = ariaLabel,
+        onClick = onClick,
+        shade = shade,
+        emoji = tag.emoji,
+        size = if (small) PillSize.Small else PillSize.Default,
         // Only an attached tag can be taken off, so only that one gets the cross.
-        if (!small) Icon(LucideIcon.X, size = ICON_MICRO)
-    }
+        trailing = if (small) null else ({ Icon(LucideIcon.X, size = ICON_MICRO) }),
+    )
 }
 
 /**
@@ -133,33 +135,39 @@ private fun TagCreator(
 
     Div({ classes("creator") }) {
         Div({ classes("creator__row") }) {
-            Input(InputType.Text) {
-                classes("input", "creator__emoji")
-                value(emoji)
-                placeholder("😊")
-                maxLength(TAG_EMOJI_MAX_LENGTH)
-                attr("aria-label", "Tag emoji")
-                onInput { event -> emoji = event.value }
-            }
+            TextField(
+                value = emoji,
+                onValueChange = { emoji = it },
+                placeholder = "\uD83D\uDE0A",
+                ariaLabel = "Tag emoji",
+                attrs = {
+                    classNames("creator__emoji")
+                    maxLength(TAG_EMOJI_MAX_LENGTH)
+                },
+            )
 
-            Input(InputType.Text) {
-                classes("input")
-                value(name)
-                placeholder("Tag name")
-                attr("aria-label", "Tag name")
-                onInput { event -> name = event.value }
-                onKeyDown { event ->
-                    if (event.key == "Enter" && name.isNotBlank()) {
-                        event.preventDefault()
-                        onCreate(name, color, emoji)
+            TextField(
+                value = name,
+                onValueChange = { name = it },
+                placeholder = "Tag name",
+                ariaLabel = "Tag name",
+                attrs = {
+                    onKeyDown { event ->
+                        if (event.key == "Enter" && name.isNotBlank()) {
+                            event.preventDefault()
+                            onCreate(name, color, emoji)
+                        }
                     }
-                }
-            }
+                },
+            )
         }
 
         Div({ classes("creator__colors") }) {
             Swatches.All.forEach { swatch ->
-                Button({
+                // `RawButton` is Compose HTML's own: a colour swatch is a 1rem circle
+                // with no label and no ink, which keel has no component for and which
+                // none of its button variants describes.
+                RawButton({
                     classes(
                         *listOfNotNull("swatch", "swatch--on".takeIf { swatch == color })
                             .toTypedArray(),
@@ -174,21 +182,18 @@ private fun TagCreator(
         }
 
         Div({ classes("creator__row") }) {
-            Button({
-                classes("editor__primary-button")
-                attr("type", "button")
-                if (name.isBlank()) attr("disabled", "")
-                onClick { onCreate(name, color, emoji) }
-            }) {
-                Text("Create")
-            }
-            Button({
-                classes("editor__ghost-button")
-                attr("type", "button")
-                onClick { onCancel() }
-            }) {
-                Text("Cancel")
-            }
+            Button(
+                label = "Create",
+                onClick = { onCreate(name, color, emoji) },
+                size = ButtonSize.ExtraSmall,
+                enabled = name.isNotBlank(),
+            )
+            Button(
+                label = "Cancel",
+                onClick = onCancel,
+                variant = ButtonVariant.Quiet,
+                size = ButtonSize.ExtraSmall,
+            )
         }
     }
 }

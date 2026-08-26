@@ -6,6 +6,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import io.github.bchmsl.keel.color.SwatchShade
+import io.github.bchmsl.keel.components.Button
+import io.github.bchmsl.keel.components.ButtonSize
+import io.github.bchmsl.keel.components.ButtonVariant
 import io.github.bchmsl.keel.components.Dialog
 import io.github.bchmsl.keel.components.FormattedText
 import io.github.bchmsl.keel.components.FormattingField
@@ -14,7 +17,6 @@ import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.data.NotesController
 import io.github.dayboard.domain.model.background
 import io.github.dayboard.ui.cards.ICON_TINY
-import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.P
 import org.jetbrains.compose.web.dom.Span
@@ -96,29 +98,28 @@ private fun DeleteNoteSection(onDelete: () -> Unit) {
     Div({ classes("editor__delete") }) {
         if (confirming) {
             Span({ classes("editor__warning") }) { Text("Delete this note?") }
-            Button({
-                classes("editor__danger-button")
-                attr("type", "button")
-                onClick { onDelete() }
-            }) {
-                Text("Delete")
-            }
-            Button({
-                classes("editor__ghost-button")
-                attr("type", "button")
-                onClick { confirming = false }
-            }) {
-                Text("Cancel")
-            }
+            Button(
+                label = "Delete",
+                onClick = onDelete,
+                variant = ButtonVariant.Destructive,
+                size = ButtonSize.ExtraSmall,
+            )
+            Button(
+                label = "Cancel",
+                onClick = { confirming = false },
+                variant = ButtonVariant.Quiet,
+                size = ButtonSize.ExtraSmall,
+            )
         } else {
-            Button({
-                classes("editor__ghost-button", "editor__ghost-button--danger")
-                attr("type", "button")
-                onClick { confirming = true }
-            }) {
-                Icon(LucideIcon.Trash2, size = ICON_TINY)
-                Text("Delete note")
-            }
+            // `QuietDestructive`, not `Destructive`: this press only asks the
+            // question. The solid red belongs on the one above, which answers it.
+            Button(
+                label = "Delete note",
+                onClick = { confirming = true },
+                variant = ButtonVariant.QuietDestructive,
+                size = ButtonSize.ExtraSmall,
+                leading = { Icon(LucideIcon.Trash2, size = ICON_TINY) },
+            )
         }
     }
 }
@@ -173,14 +174,12 @@ fun NoteViewDialog(
             }
 
             Div({ classes("viewer__actions") }) {
-                Button({
-                    classes("editor__primary-button")
-                    attr("type", "button")
-                    onClick { onEdit() }
-                }) {
-                    Icon(LucideIcon.Pencil, size = ICON_TINY)
-                    Text("Edit note")
-                }
+                Button(
+                    label = "Edit note",
+                    onClick = onEdit,
+                    size = ButtonSize.ExtraSmall,
+                    leading = { Icon(LucideIcon.Pencil, size = ICON_TINY) },
+                )
             }
         }
     }

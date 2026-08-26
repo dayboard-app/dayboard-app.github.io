@@ -3,6 +3,8 @@ package io.github.dayboard.ui.dialogs
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
 import io.github.bchmsl.keel.color.SwatchShade
+import io.github.bchmsl.keel.components.Button
+import io.github.bchmsl.keel.components.ButtonSize
 import io.github.bchmsl.keel.components.Dialog
 import io.github.bchmsl.keel.components.FormattedText
 import io.github.bchmsl.keel.icons.Icon
@@ -13,7 +15,6 @@ import io.github.dayboard.domain.model.background
 import io.github.dayboard.ui.cards.DragHandleOrSpacer
 import io.github.dayboard.ui.cards.ICON_TINY
 import io.github.dayboard.ui.cards.TaskCheckbox
-import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.P
 import org.jetbrains.compose.web.dom.Span
@@ -119,13 +120,12 @@ fun TaskViewDialog(
             }
 
             Div({ classes("viewer__actions") }) {
-                Button({
-                    classes("editor__primary-button")
-                    onClick { onEdit() }
-                }) {
-                    Icon(LucideIcon.Pencil, size = ICON_TINY)
-                    Text("Edit task")
-                }
+                Button(
+                    label = "Edit task",
+                    onClick = onEdit,
+                    size = ButtonSize.ExtraSmall,
+                    leading = { Icon(LucideIcon.Pencil, size = ICON_TINY) },
+                )
             }
         }
     }

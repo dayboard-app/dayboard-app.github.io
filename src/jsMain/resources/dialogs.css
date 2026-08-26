@@ -60,73 +60,17 @@
   font-size: 0.75rem;
 }
 
-.editor__ghost-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  width: fit-content;
-  border: none;
-  border-radius: 0.375rem;
-  padding: 0.25rem 0.5rem;
-  background-color: transparent;
-  color: hsl(var(--muted-foreground));
-  font-family: inherit;
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition:
-    background-color 150ms ease,
-    color 150ms ease;
-}
+/* Three button treatments used to be written out here: a quiet one, a tinted primary
+   one and a solid destructive one, each at its own size. All three are keel's, at
+   `ButtonSize.ExtraSmall` - a tier that exists because of this file. What is left is
+   the one thing keel cannot know.
 
-.editor__ghost-button:hover {
-  background-color: hsl(var(--muted) / 0.5);
-  color: hsl(var(--foreground));
-}
-
-.editor__ghost-button--danger:hover {
-  background-color: transparent;
-  color: hsl(var(--destructive));
-}
-
-.editor__primary-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  border: none;
-  border-radius: 0.5rem;
-  padding: 0.375rem 0.75rem;
-  background-color: hsl(var(--primary) / 0.1);
-  color: hsl(var(--primary));
-  font-family: inherit;
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 150ms ease;
-}
-
-.editor__primary-button:hover:not(:disabled) {
-  background-color: hsl(var(--primary) / 0.2);
-}
-
-.editor__primary-button:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-.editor__danger-button {
-  border: none;
-  border-radius: 0.5rem;
-  padding: 0.375rem 0.75rem;
-  background-color: hsl(var(--destructive));
-  color: hsl(var(--destructive-foreground));
-  font-family: inherit;
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.editor__danger-button:hover {
-  background-color: hsl(var(--destructive) / 0.9);
+   Two of the quiet buttons - "New tag" and "Add subtask" - sit directly inside
+   `.editor__section`, which is a flex column, so without this they stretch to the
+   dialog's full width. `align-self` rather than `width: fit-content` because the
+   problem is cross-axis stretch, not width. */
+.editor__inline-action {
+  align-self: flex-start;
 }
 
 /* ----- new tag ----- */
@@ -184,27 +128,21 @@
   min-width: 0;
 }
 
+/* keel's `QuietDestructive` at `IconExtraSmall` gives the box, the radius and the
+   red-under-the-pointer. What is here is the one part it cannot: this control is not
+   dimmed at rest, it is absent, and only the row being hovered brings it out. Quiet
+   is about how loud a control is; this is about whether it is there at all. */
 .subtask__delete {
-  display: inline-flex;
   flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  border: none;
-  border-radius: 0.25rem;
-  background-color: transparent;
   color: transparent;
-  cursor: pointer;
-  transition: color 150ms ease;
 }
 
-.subtask:hover .subtask__delete {
+/* `:not(:hover)` matters. Both this and keel's `.btn--quiet-destructive:hover` set
+   `color`, both are specificity (0,2,0), and this sheet loads later - so without the
+   exclusion the reveal colour would win over the red on the one hover that should
+   show it, which is the pointer resting on the button itself. */
+.subtask:hover .subtask__delete:not(:hover) {
   color: hsl(var(--muted-foreground) / 0.5);
-}
-
-.subtask__delete:hover {
-  color: hsl(var(--destructive));
 }
 
 /* ----- delete section ----- */
