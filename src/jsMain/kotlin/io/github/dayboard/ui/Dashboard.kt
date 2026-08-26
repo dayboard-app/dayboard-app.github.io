@@ -8,7 +8,11 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import io.github.bchmsl.keel.components.ButtonVariant
 import io.github.bchmsl.keel.components.Card
+import io.github.bchmsl.keel.components.EmptyState
+import io.github.bchmsl.keel.components.IconButton
+import io.github.bchmsl.keel.components.Scrim
 import io.github.bchmsl.keel.icons.Icon
 import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.bchmsl.keel.theme.ThemeController
@@ -32,7 +36,6 @@ import io.github.dayboard.ui.dialogs.NoteEditDialog
 import io.github.dayboard.ui.dialogs.NoteViewDialog
 import io.github.dayboard.ui.dialogs.TaskEditDialog
 import io.github.dayboard.ui.dialogs.TaskViewDialog
-import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.H1
 import org.jetbrains.compose.web.dom.Header
@@ -214,12 +217,13 @@ fun Dashboard(
     }
 
     expanded?.let { card ->
-        // The backdrop is a sibling of the card rather than its parent, so a click
-        // on the card cannot bubble out and close it.
-        Div({
-            classes("expanded__backdrop")
-            onClick { expanded = null }
-        })
+        // keel's `Scrim`, the same dim that sits behind every dialog in this app.
+        // The local backdrop it replaces was a second one for the same job, in a
+        // different colour and at a different alpha.
+        //
+        // A sibling of the card rather than its parent, so a click on the card
+        // cannot bubble out to the scrim and close it.
+        Scrim(onDismiss = { expanded = null })
         Div({ classes("expanded") }) {
             Card(
                 title = card.title,
@@ -256,12 +260,12 @@ private fun BoardHeader(email: String, onOpenSettings: () -> Unit) {
 
             Div({ classes("header__actions") }) {
                 Span({ classes("header__email") }) { Text(email) }
-                Button({
-                    classes("header__button")
-                    attr("aria-label", "Settings")
-                    attr("title", "Settings")
-                    onClick { onOpenSettings() }
-                }) {
+                IconButton(
+                    ariaLabel = "Settings",
+                    onClick = onOpenSettings,
+                    variant = ButtonVariant.Quiet,
+                    title = "Settings",
+                ) {
                     Icon(LucideIcon.Settings, size = 16)
                 }
             }
@@ -300,8 +304,11 @@ private fun BoardColumnView(
         }
     }) {
         if (visible.isEmpty()) {
-            // Only meaningful mid-drag; an empty column at rest just takes no space.
-            Div({ classes("board__empty") }) { Text("Drop cards here") }
+            // Only meaningful mid-drag, and louder than the local box it replaces:
+            // keel's title is 15px semibold in `--foreground` where this was 12px at
+            // 40% opacity. The geometry is the same, so what changed is emphasis, not
+            // kind - and the column tint is still what actually marks the target.
+            EmptyState(title = "Drop cards here")
         }
 
         visible.forEachIndexed { index, cardId ->
