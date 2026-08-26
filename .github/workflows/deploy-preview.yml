@@ -1,0 +1,108 @@
+name: Deploy preview alongside production
+
+# Publishes this branch's build to /preview on the SAME Pages site that
+# deploy.yml serves at the root, without touching root at all.
+#
+# GitHub Pages has exactly one live deployment per site: whichever
+# `actions/deploy-pages` call ran last REPLACES everything, in full. Two
+# workflows each deploying their own half would not merge - the second to
+# finish would erase the first. So this workflow builds BOTH halves itself, in
+# one job, and uploads them together as one artifact: `main`'s current commit
+# rebuilt fresh for the root, and this branch's commit built into `preview/`.
+#
+# Safe to run from a feature branch on purpose: nothing here reads or writes
+# anything on `main`, and `deploy.yml` - the actual production pipeline - is
+# untouched by this file entirely.
+#
+# Two things make /preview work at all, and both are worth knowing before this
+# is pointed at another app. Every asset in index.html is a relative path, so a
+# copy under a directory finds its own files rather than the root's. And the
+# router is hash-based, so a deep link is /preview/#/board - one real file,
+# which is all GitHub Pages can serve without a rewrite rule.
+
+on:
+  push:
+    branches: [task/NO_TICKET/keel-migration]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Shares deploy.yml's group on purpose: a production deploy and a preview
+# deploy must never race, because whichever finishes last wins the whole site.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # `submodules: true`, or `keel/` checks out empty and the build fails
+      # resolving `io.github.bchmsl:keel`. keel is public, so no extra
+      # credentials are needed.
+      - name: Check out this branch (preview)
+        uses: actions/checkout@v5
+        with:
+          path: preview-src
+          submodules: true
+
+      - name: Check out main (production, rebuilt fresh)
+        uses: actions/checkout@v5
+        with:
+          ref: main
+          path: main-src
+          # main predates the migration and has no submodule; harmless either way.
+          submodules: true
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # Only the preview branch is tested. main's tests already passed when main
+      # was deployed, and re-running them here would let an unrelated failure on
+      # main block a preview of this branch.
+      - name: Test the preview branch
+        working-directory: preview-src
+        run: ./gradlew :shared:allTests
+
+      - name: Build production (main) for root
+        working-directory: main-src
+        run: ./gradlew jsBrowserDistribution
+
+      - name: Build preview (this branch) for /preview
+        working-directory: preview-src
+        run: ./gradlew jsBrowserDistribution
+
+      - name: Assemble the combined site
+        run: |
+          set -eu
+          mkdir -p combined
+          cp -R main-src/build/dist/js/productionExecutable/. combined/
+          mkdir -p combined/preview
+          cp -R preview-src/build/dist/js/productionExecutable/. combined/preview/
+          # GitHub Pages runs Jekyll by default, which drops files beginning
+          # with an underscore, and Kotlin/JS and webpack can emit those.
+          touch combined/.nojekyll
+          touch combined/preview/.nojekyll
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: combined
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
