@@ -151,12 +151,9 @@
   opacity: 0.5;
 }
 
-.board__slot--dragging .card {
-  box-shadow:
-    0 10px 15px -3px rgb(0 0 0 / 0.1),
-    0 4px 6px -4px rgb(0 0 0 / 0.1);
-  outline: 2px solid hsl(var(--primary) / 0.2);
-}
+/* The lifted look while a card is dragged used to be here, reaching keel's `.card`
+   from this slot. It is `Card(dragging = true)` now: the shadow was `--shadow-lg`
+   written out, so in dark mode it was the light value. */
 
 /* ---------------------------------------------------------------- expanded -- */
 
@@ -176,9 +173,7 @@
   display: flex;
 }
 
-.expanded > .card {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-}
+/* `.expanded > .card` used to set the column, the full height and the clipped
+   overflow here. keel emitted `.card--expanded` with no rule of its own, so the four
+   lines that make a full-screen card work lived in this sheet; they are keel's now.
+   What is left above is the container, which is this app's. */

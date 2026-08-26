@@ -381,6 +381,11 @@ private fun BoardCard(
             title = card.title,
             collapsed = settings.settings.cardLayout.isCollapsed(card),
             draggable = draggable,
+            // The lift while the pointer carries it. It used to be two declarations in
+            // `screens.css` reaching keel's `.card` from the slot around it, which is a
+            // consumer sheet styling a keel component. keel draws it now, and its
+            // shadow drops to the dark-mode alpha the hand-written copy never had.
+            dragging = dragging,
             centerContent = card == CardId.Clock || card == CardId.Timer,
             onToggleCollapsed = { settings.toggleCollapsed(card) },
             onToggleExpanded = onExpand,
