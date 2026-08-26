@@ -7,9 +7,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import io.github.bchmsl.keel.color.SwatchShade
+import io.github.bchmsl.keel.components.EmptyState
 import io.github.bchmsl.keel.components.FormattedText
 import io.github.bchmsl.keel.components.Pill
 import io.github.bchmsl.keel.components.PillSize
+import io.github.bchmsl.keel.components.Spinner
 import io.github.bchmsl.keel.icons.Icon
 import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.data.ListDragController
@@ -17,13 +19,10 @@ import io.github.dayboard.data.NotesController
 import io.github.dayboard.domain.model.Note
 import io.github.dayboard.domain.model.Tag
 import io.github.dayboard.domain.model.hasDetail
-import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.onSubmit as onSubmitAttribute
-import org.jetbrains.compose.web.attributes.placeholder
 import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Form
-import org.jetbrains.compose.web.dom.Input
 import org.jetbrains.compose.web.dom.P
 import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
@@ -68,20 +67,16 @@ fun NotesCard(
         }
 
         when {
-            !notes.loaded -> NotesNotice {
-                Icon(LucideIcon.LoaderCircle, size = ICON_MEDIUM, className = "spinner")
+            !notes.loaded -> Div({ classes("tasks__notice") }) {
+                Spinner()
                 Span { Text("Loading notes...") }
             }
 
-            notes.visible.isEmpty() -> NotesNotice {
-                Text(
-                    if (notes.filterTagId != null) {
-                        "No notes with this tag."
-                    } else {
-                        "No notes yet — type above to get started."
-                    },
-                )
-            }
+            notes.visible.isEmpty() && notes.filterTagId != null ->
+                EmptyState(title = "No notes with this tag")
+
+            notes.visible.isEmpty() ->
+                EmptyState(title = "No notes yet", body = "Type above to get started.")
 
             else -> NoteRows(notes, drag, onEditNote, onViewNote)
         }
@@ -97,22 +92,14 @@ private fun AddNoteForm(draft: String, onDraftChange: (String) -> Unit, onSubmit
             onSubmit()
         }
     }) {
-        Input(InputType.Text) {
-            classes("tasks__add-input")
-            value(draft)
-            placeholder("Add a new note...")
-            attr("aria-label", "Add a new note")
-            onInput { event -> onDraftChange(event.value) }
-        }
+        AddRowField(
+            draft = draft,
+            onDraftChange = onDraftChange,
+            placeholder = "Add a new note...",
+            ariaLabel = "Add a new note",
+        )
 
-        Button({
-            classes("tasks__add-button")
-            attr("type", "submit")
-            attr("aria-label", "Add note")
-            if (draft.isBlank()) attr("disabled", "")
-        }) {
-            Icon(LucideIcon.Plus, size = ICON_SMALL)
-        }
+        AddRowButton(enabled = draft.isNotBlank(), ariaLabel = "Add note")
     }
 }
 
@@ -120,11 +107,6 @@ private fun AddNoteForm(draft: String, onDraftChange: (String) -> Unit, onSubmit
    over the same tag vocabulary, differing only in which controller it called. Once
    both were keel's `PillButton` the two bodies were identical, so the tasks card's is
    the one that remains. */
-
-@Composable
-private fun NotesNotice(content: @Composable () -> Unit) {
-    Div({ classes("tasks__notice") }) { content() }
-}
 
 @Composable
 private fun NoteRows(
@@ -223,13 +205,7 @@ private fun NoteRow(
                 }
             }
 
-            Button({
-                classes("task__edit")
-                attr("aria-label", "Edit")
-                onClick { onEditNote(note.id) }
-            }) {
-                Icon(LucideIcon.Pencil, size = ICON_TINY)
-            }
+            EditRowButton(ariaLabel = "Edit note", onClick = { onEditNote(note.id) })
         }
 
         if (open) {

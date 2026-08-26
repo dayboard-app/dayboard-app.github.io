@@ -426,49 +426,16 @@
   gap: 0.5rem;
 }
 
-.tasks__add-input {
+/* The field is keel's `TextField` and the button is keel's `IconButton` at `Icon`.
+   Both rules were keel's own values written out - the same border, the same 12px
+   radius, the same `--card` fill, the same 2.5rem square, the same `--primary`.
+
+   All that is left is the one thing keel does not decide: which of the two stretches.
+   keel's field is `width: 100%`, correctly, because sharing a row is the row's
+   business and not the field's. */
+.tasks__add-row-field {
   flex: 1;
   min-width: 0;
-  border: 1px solid hsl(var(--border));
-  border-radius: 0.75rem;
-  padding: 0.625rem 1rem;
-  background-color: hsl(var(--card));
-  color: hsl(var(--foreground));
-  font-family: inherit;
-  font-size: 0.875rem;
-}
-
-.tasks__add-input:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
-}
-
-.tasks__add-button {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border: none;
-  border-radius: 0.75rem;
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  cursor: pointer;
-  transition: transform 150ms ease;
-}
-
-.tasks__add-button:hover:not(:disabled) {
-  transform: scale(1.05);
-}
-
-.tasks__add-button:active:not(:disabled) {
-  transform: scale(0.95);
-}
-
-.tasks__add-button:disabled {
-  opacity: 0.4;
-  cursor: default;
 }
 
 /* ----- tag filter ----- */
@@ -497,6 +464,11 @@
 
 /* ----- notices ----- */
 
+/* The one notice left: a wait. "Nothing here" is keel's `EmptyState` now, which both
+   empty cases use - but a list still loading is not empty, and keel's own docs say so:
+   showing "No tasks yet" during a fetch tells the user something false. So this stays
+   as a centred row holding keel's `Spinner` and a line of text, which is layout and
+   not a component. */
 .tasks__notice {
   display: flex;
   align-items: center;
@@ -634,39 +606,24 @@
   text-decoration: line-through;
 }
 
-.task__progress {
-  border-radius: 9999px;
-  padding: 0.125rem 0.375rem;
-  background-color: hsl(var(--muted));
-  color: hsl(var(--muted-foreground));
-  font-size: 0.625rem;
-  font-weight: 500;
-}
+/* The "2/5" count was written out here and is keel's `Badge` at `Neutral` now - the
+   same `--muted` fill, the same muted ink, the same padding and type size. */
 
+/* The edit button is keel's `IconButton` at `Quiet` and `IconExtraSmall`, which is the
+   same 1.75rem box this rule drew. What is left is the part keel cannot know: at rest
+   this control is not dim, it is *absent*, and only its row being hovered brings it
+   out. Quiet is about how loud a control is; this is about whether it is there at all.
+
+   `:not(:hover)` matters, for the reason the settings panel's tag actions give: this
+   sheet loads after keel's and both rules set `color` at the same specificity, so
+   without the exclusion the reveal colour would beat keel's own hover on the one hover
+   that should show it. */
 .task__edit {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border: none;
-  border-radius: 0.375rem;
-  background-color: transparent;
   color: transparent;
-  cursor: pointer;
-  transition:
-    color 150ms ease,
-    background-color 150ms ease;
 }
 
-.task:hover .task__edit {
+.task:hover .task__edit:not(:hover) {
   color: hsl(var(--muted-foreground));
-}
-
-.task__edit:hover {
-  background-color: hsl(var(--primary) / 0.05);
-  color: hsl(var(--primary));
 }
 
 /* ----- expanded row ----- */

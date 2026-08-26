@@ -7,12 +7,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import io.github.bchmsl.keel.color.SwatchShade
+import io.github.bchmsl.keel.components.Badge
+import io.github.bchmsl.keel.components.ButtonSize
+import io.github.bchmsl.keel.components.ButtonVariant
 import io.github.bchmsl.keel.components.Checkbox
 import io.github.bchmsl.keel.components.CheckboxSize
+import io.github.bchmsl.keel.components.EmptyState
 import io.github.bchmsl.keel.components.FormattedText
+import io.github.bchmsl.keel.components.IconButton
 import io.github.bchmsl.keel.components.Pill
 import io.github.bchmsl.keel.components.PillButton
 import io.github.bchmsl.keel.components.PillSize
+import io.github.bchmsl.keel.components.Spinner
+import io.github.bchmsl.keel.components.TextField
+import io.github.bchmsl.keel.dom.classNames
 import io.github.bchmsl.keel.icons.Icon
 import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.data.ListDragController
@@ -21,13 +29,10 @@ import io.github.dayboard.domain.model.Tag
 import io.github.dayboard.domain.model.Task
 import io.github.dayboard.domain.model.hasDetail
 import io.github.dayboard.domain.model.subtaskProgress
-import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.onSubmit as onSubmitAttribute
-import org.jetbrains.compose.web.attributes.placeholder
 import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Form
-import org.jetbrains.compose.web.dom.Input
 import org.jetbrains.compose.web.dom.P
 import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
@@ -95,24 +100,59 @@ private fun AddTaskForm(draft: String, onDraftChange: (String) -> Unit, onSubmit
             onSubmit()
         }
     }) {
-        Input(InputType.Text) {
-            classes("tasks__add-input")
-            value(draft)
-            placeholder("Add a new task...")
-            attr("aria-label", "Add a new task")
-            onInput { event -> onDraftChange(event.value) }
-        }
+        AddRowField(
+            draft = draft,
+            onDraftChange = onDraftChange,
+            placeholder = "Add a new task...",
+            ariaLabel = "Add a new task",
+        )
 
-        Button({
-            classes("tasks__add-button")
-            attr("type", "submit")
-            attr("aria-label", "Add task")
-            // Nothing to add is not an error worth explaining, so the button simply
-            // is not available until there is something to add.
-            if (draft.isBlank()) attr("disabled", "")
-        }) {
-            Icon(LucideIcon.Plus, size = ICON_SMALL)
-        }
+        AddRowButton(enabled = draft.isNotBlank(), ariaLabel = "Add task")
+    }
+}
+
+/**
+ * The text field in an add row.
+ *
+ * keel's `TextField` is the whole of it now. What was here was the field's border,
+ * radius, padding, fill and focus glow written out, at values that were keel's to
+ * within the horizontal padding and the thickness of the glow.
+ *
+ * Shared with the notes card, which had the same two controls a second time.
+ */
+@Composable
+internal fun AddRowField(
+    draft: String,
+    onDraftChange: (String) -> Unit,
+    placeholder: String,
+    ariaLabel: String,
+) {
+    TextField(
+        value = draft,
+        onValueChange = onDraftChange,
+        placeholder = placeholder,
+        ariaLabel = ariaLabel,
+        // keel's field is `width: 100%`, correctly - sharing a flex row is the row's
+        // decision, so the class that makes it share one belongs to this app.
+        attrs = { classNames("tasks__add-row-field") },
+    )
+}
+
+/** The submit button in an add row. */
+@Composable
+internal fun AddRowButton(enabled: Boolean, ariaLabel: String) {
+    IconButton(
+        ariaLabel = ariaLabel,
+        // The form's own submit handler does the work; this only has to *be* a submit
+        // button, which is what makes Enter in the field add the row.
+        onClick = {},
+        size = ButtonSize.Icon,
+        // Nothing to add is not an error worth explaining, so the button simply is
+        // not available until there is something to add.
+        enabled = enabled,
+        attrs = { attr("type", "submit") },
+    ) {
+        Icon(LucideIcon.Plus, size = ICON_SMALL)
     }
 }
 
@@ -162,21 +202,21 @@ internal fun TagFilterRow(tags: List<Tag>, selectedId: String?, onSelect: (Strin
 @Composable
 private fun LoadingTasks() {
     Div({ classes("tasks__notice") }) {
-        Icon(LucideIcon.LoaderCircle, size = ICON_MEDIUM, className = "spinner")
+        // keel's `Spinner`, a ring at the same 1.25rem the rotated glyph was. Turning
+        // an icon in place is what keel's `.spinner` utility is for; this is the other
+        // thing, a wait with no measurable end. It carries `role="status"`, so the
+        // wait is announced rather than only drawn.
+        Spinner()
         Span { Text("Loading tasks...") }
     }
 }
 
 @Composable
 private fun EmptyTasks(filterTagId: String?) {
-    Div({ classes("tasks__notice") }) {
-        Text(
-            if (filterTagId != null) {
-                "No tasks with this tag."
-            } else {
-                "No tasks yet — type above to get started."
-            },
-        )
+    if (filterTagId != null) {
+        EmptyState(title = "No tasks with this tag")
+    } else {
+        EmptyState(title = "No tasks yet", body = "Type above to get started.")
     }
 }
 
@@ -331,18 +371,16 @@ private fun TaskRow(
                     }
 
                     if (subtasks.isNotEmpty()) {
-                        Span({ classes("task__progress") }) { Text(subtaskProgress(subtasks)) }
+                        // keel's `Badge` at `Neutral`, which its own docs call "a
+                        // fact with no judgement attached: a count". The same fill,
+                        // ink, padding and type size as the local rule; what changes
+                        // is a squarer corner and a bolder, letterspaced figure.
+                        Badge(label = subtaskProgress(subtasks))
                     }
                 }
             }
 
-            Button({
-                classes("task__edit")
-                attr("aria-label", "Edit")
-                onClick { onEditTask(task.id) }
-            }) {
-                Icon(LucideIcon.Pencil, size = ICON_TINY)
-            }
+            EditRowButton(ariaLabel = "Edit task", onClick = { onEditTask(task.id) })
         }
 
         if (open) {
@@ -410,6 +448,29 @@ private fun TaskDetail(task: Task, tags: List<Tag>, subtasks: List<Task>, tasks:
    hears can no longer drift apart. */
 
 /**
+ * A row's edit button: absent until the row is hovered.
+ *
+ * keel's `IconButton` at `IconExtraSmall`, which is the same 1.75rem box the local
+ * rule drew - `--control-h-xs` has been that size since keel's own card headers were
+ * written. `Quiet` is the variant for a control that is muted until reached for.
+ *
+ * The one thing left in `cards.css` is the part keel cannot know: at rest this button
+ * is not dim, it is *invisible*, and only its row being hovered brings it out.
+ */
+@Composable
+internal fun EditRowButton(ariaLabel: String, onClick: () -> Unit) {
+    IconButton(
+        ariaLabel = ariaLabel,
+        onClick = onClick,
+        variant = ButtonVariant.Quiet,
+        size = ButtonSize.IconExtraSmall,
+        attrs = { classNames("task__edit") },
+    ) {
+        Icon(LucideIcon.Pencil, size = ICON_TINY)
+    }
+}
+
+/**
  * The grip, or the space one would take.
  *
  * A spacer rather than nothing, so that a finished task's checkbox lines up with the
@@ -445,4 +506,3 @@ internal fun DragHandleOrSpacer(onDragStart: (() -> Unit)?) {
 internal const val ICON_MICRO = 10
 internal const val ICON_TINY = 12
 internal const val ICON_SMALL = 16
-internal const val ICON_MEDIUM = 20
