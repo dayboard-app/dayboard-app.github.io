@@ -160,46 +160,15 @@
 
 /* ----- mode tabs ----- */
 
-.timer__tabs {
-  display: flex;
-  gap: 0.25rem;
-  padding: 0.25rem;
-  border-radius: calc(var(--radius) - 2px);
-  background-color: hsl(var(--muted));
-}
+/* The strip is keel's `SegmentedControl`. It was the same idea drawn by hand: the same
+   `--muted` track, the same lift on the chosen one, at a radius and padding that were
+   never decisions. What is gained is a real radio group - one tab stop for the strip
+   and arrow keys between the three.
 
-.timer__tab {
-  border: none;
-  border-radius: calc(var(--radius) - 4px);
-  padding: 0.375rem 0.75rem;
-  background-color: transparent;
-  color: hsl(var(--muted-foreground));
-  font-family: inherit;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background-color 150ms ease,
-    color 150ms ease;
-}
-
-.timer__tab:hover {
-  color: hsl(var(--foreground));
-}
-
-/* The active tab takes the colour of the mode it selects, so the card reads as
-   work or as rest without reading the label. */
-.timer__tab--active,
-.timer__tab--active:hover {
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-}
-
-.timer__tab--break,
-.timer__tab--break:hover {
-  background-color: hsl(var(--secondary));
-  color: hsl(var(--secondary-foreground));
-}
+   One thing is lost. The chosen tab used to take `--primary` or `--secondary` to say
+   which mode the card is in; keel draws one selected look for every segment. The ring's
+   arc and the play button both still turn on a break, and the mode's name is written
+   under the countdown, so the signal is still there twice over. */
 
 /* ----- ring ----- */
 
@@ -290,53 +259,20 @@
   gap: 0.75rem;
 }
 
-.timer__side-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border: none;
-  border-radius: 9999px;
-  background-color: transparent;
-  color: hsl(var(--muted-foreground));
-  cursor: pointer;
-  transition:
-    background-color 150ms ease,
-    color 150ms ease;
-}
+/* All three controls are keel's `IconButton` at `Circle` now.
 
-.timer__side-button:hover {
-  background-color: hsl(var(--muted));
-  color: hsl(var(--foreground));
-}
+   The two side buttons are `Quiet` at `Icon`, which was this rule to the value: the
+   same 2.5rem circle, the same muted ink, the same `--muted` fill and full-strength
+   ink under the pointer.
 
-.timer__play {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 3.5rem;
-  height: 3.5rem;
-  border: none;
-  border-radius: 9999px;
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  cursor: pointer;
-  transition: transform 150ms ease;
-}
+   The play button is `IconLarge`, and it is the reason that tier and `Circle` exist in
+   keel at all - a 3.5rem circle was outside a scale that stopped at 2.75rem with a
+   10px corner, and the other app had written the same control by hand at its own size.
+   `Default` and `Secondary` are what `--primary` and `--break` were.
 
-.timer__play--break {
-  background-color: hsl(var(--secondary));
-  color: hsl(var(--secondary-foreground));
-}
-
-.timer__play:hover {
-  transform: scale(1.05);
-}
-
-.timer__play:active {
-  transform: scale(0.95);
-}
+   Its hover changes: keel dims the fill to 90% where this grew the button 5%. The
+   growth is the nicer of the two, but it is not worth a consumer rule that reaches
+   into keel's own button to restate it. */
 
 /* A triangle sits visually left of centre inside a circle. The square pause glyph
    does not, which is why only one of them is nudged. */
@@ -348,12 +284,20 @@
 
 /* Holds the space the dots and the controls will take, so the card does not change
    height - and shove everything below it - the moment the timer arrives. */
+/* A measured literal, not a calc: keel's segmented strip has no height of its own -
+   it is two paddings, a border and a line box - so there is no token to read. 2rem is
+   what it comes out at, checked against the real strip. */
+.timer__tabs-placeholder {
+  height: 2rem;
+}
+
 .timer__dots-placeholder {
   height: 0.625rem;
 }
 
+/* This one does have a token, now that the play button asks keel for its size. */
 .timer__controls-placeholder {
-  height: 3.5rem;
+  height: var(--control-h-transport);
 }
 
 /* ----- expanded ----- */
@@ -384,15 +328,9 @@
   gap: 1.25rem;
 }
 
-.timer--expanded .timer__side-button {
-  width: 3.5rem;
-  height: 3.5rem;
-}
-
-.timer--expanded .timer__play {
-  width: 5rem;
-  height: 5rem;
-}
+/* The two rules that used to grow the controls here are gone. Expanded, the side
+   buttons ask keel for `Transport` and the play button for `TransportLarge` - the same
+   3.5rem and 5rem, chosen at the call site instead of reached into from this sheet. */
 
 @media (min-width: 1024px) {
   .timer--expanded .timer__ring {
