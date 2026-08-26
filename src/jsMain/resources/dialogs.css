@@ -103,23 +103,14 @@
   gap: 0.5rem;
 }
 
-.swatch {
-  width: 1rem;
-  height: 1rem;
-  border: none;
-  border-radius: 9999px;
-  cursor: pointer;
-  transition: transform 150ms ease;
-}
+/* The colour swatches used to be written out here, and again in the settings panel.
+   Both are keel's `.swatch` at `Small` now. Leaving a copy behind would have been
+   worse than duplication: this sheet loads after keel's, so a `.swatch` here would
+   shadow keel's rule rather than merely repeat it.
 
-.swatch:hover {
-  transform: scale(1.1);
-}
-
-.swatch--on {
-  transform: scale(1.25);
-  box-shadow: 0 0 0 1px hsl(var(--background)), 0 0 0 3px currentColor;
-}
+   One visible change came out of it. The selected swatch used to grow 25% as well as
+   taking a ring; keel rings it without the growth, because in a wrapped grid of ten a
+   swatch that grows nudges its neighbours and can reflow the row. */
 
 /* ----- subtasks in the dialogs ----- */
 

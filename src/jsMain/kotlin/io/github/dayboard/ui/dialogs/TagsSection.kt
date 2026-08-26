@@ -12,6 +12,8 @@ import io.github.bchmsl.keel.components.ButtonSize
 import io.github.bchmsl.keel.components.ButtonVariant
 import io.github.bchmsl.keel.components.PillButton
 import io.github.bchmsl.keel.components.PillSize
+import io.github.bchmsl.keel.components.Swatch
+import io.github.bchmsl.keel.components.SwatchSize
 import io.github.bchmsl.keel.components.TextField
 import io.github.bchmsl.keel.dom.classNames
 import io.github.bchmsl.keel.icons.Icon
@@ -23,7 +25,6 @@ import io.github.dayboard.ui.cards.ICON_TINY
 import org.jetbrains.compose.web.attributes.maxLength
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Text
-import org.jetbrains.compose.web.dom.Button as RawButton
 
 /**
  * The tag controls shared by the task and note editors.
@@ -164,20 +165,15 @@ private fun TagCreator(
 
         Div({ classes("creator__colors") }) {
             Swatches.All.forEach { swatch ->
-                // `RawButton` is Compose HTML's own: a colour swatch is a 1rem circle
-                // with no label and no ink, which keel has no component for and which
-                // none of its button variants describes.
-                RawButton({
-                    classes(
-                        *listOfNotNull("swatch", "swatch--on".takeIf { swatch == color })
-                            .toTypedArray(),
-                    )
-                    attr("type", "button")
-                    attr("aria-label", "Colour $swatch")
-                    attr("aria-pressed", (swatch == color).toString())
-                    style { property("background-color", swatch) }
-                    onClick { color = swatch }
-                })
+                Swatch(
+                    color = swatch,
+                    ariaLabel = "Colour $swatch",
+                    selected = swatch == color,
+                    onSelect = { color = swatch },
+                    // `Small`, which is the tier for a grid: what matters here is
+                    // telling ten colours apart, not aiming at one of them.
+                    size = SwatchSize.Small,
+                )
             }
         }
 
