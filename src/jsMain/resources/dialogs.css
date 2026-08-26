@@ -28,19 +28,10 @@
   text-transform: uppercase;
 }
 
-/* A field and the toolbar that belongs to it, kept together so the toolbar can
-   never end up beside the wrong one. */
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-  align-items: flex-start;
-}
-
-.field > .input,
-.field > .textarea {
-  width: 100%;
-}
+/* `.field` used to live here: a column holding a field and its formatting toolbar,
+   with a `width: 100%` on whichever of the two boxes was inside. Nothing has emitted
+   it since the editor moved to keel's `FormattingField`, which is that column - and
+   keel's own fields are full-width, so the override had nothing to correct either. */
 
 .editor__row {
   display: flex;

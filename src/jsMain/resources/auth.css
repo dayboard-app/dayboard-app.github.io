@@ -85,19 +85,11 @@
    trailing arrow that becomes a lone spinner mid-request, and the composable has a
    leading slot but no trailing one. It takes `buttonClasses()` so a keel rename is a
    compiler error rather than an unstyled control. */
-.auth__error {
-  margin: 0;
-  font-size: 0.875rem;
-  color: hsl(var(--destructive));
-}
-
-/* Success is the theme's secondary rather than a green of its own, so it stays
-   inside the palette in all twelve themes. */
-.auth__message {
-  margin: 0;
-  font-size: 0.875rem;
-  color: hsl(var(--secondary));
-}
+/* `.auth__error` and `.auth__message` are gone: both are keel `Callout`s now, which
+   is the component for a sentence about the screen rather than about an action just
+   taken. Each was one line of tinted text - `--destructive` for the failure and
+   `--secondary` for the confirmation - and keel measured that exact pair as failing
+   contrast on the light palettes, which is why its tones tint the box instead. */
 
 .auth__toggle {
   margin: 1rem 0 0;

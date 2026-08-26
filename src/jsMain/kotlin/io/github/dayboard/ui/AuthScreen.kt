@@ -3,6 +3,8 @@ package io.github.dayboard.ui
 import androidx.compose.runtime.Composable
 import io.github.bchmsl.keel.components.ButtonSize
 import io.github.bchmsl.keel.components.ButtonVariant
+import io.github.bchmsl.keel.components.Callout
+import io.github.bchmsl.keel.components.CalloutTone
 import io.github.bchmsl.keel.components.Surface
 import io.github.bchmsl.keel.components.TextField
 import io.github.bchmsl.keel.dom.buttonClasses
@@ -99,8 +101,29 @@ fun AuthScreen(
                     )
                 }
 
-                error?.let { P({ classes("auth__error") }) { Text(it) } }
-                message?.let { P({ classes("auth__message") }) { Text(it) } }
+                // keel's `Callout`, which names this exact case: something that went
+                // wrong about the screen rather than about an action, and `announce`
+                // for "a failed sign-in" in as many words. Both were a coloured line
+                // of text, so both were silent - a screen reader reached them only if
+                // focus happened to pass, which after a rejected password it does not.
+                //
+                // The tone tints the box and leaves the ink at `--foreground`, which
+                // keel measured: `--destructive` ink on its own tint reaches 3.0:1 on
+                // the light palettes, under the 4.5:1 this size needs. The old rule
+                // was that failing pair, in all twelve themes.
+                error?.let {
+                    Callout(tone = CalloutTone.Destructive, announce = true) { Text(it) }
+                }
+
+                // `Success` and not `Primary`, because `--primary` is coral at hue 350
+                // and ember at 25, either side of the destructive red at 0 - so on two
+                // of the six palettes the confirmation would be the same red box as
+                // the failure above it. Only one of the two is ever on screen, so
+                // there is nothing beside it to tell them apart. This tone is the one
+                // keel added for it.
+                message?.let {
+                    Callout(tone = CalloutTone.Success, announce = true) { Text(it) }
+                }
 
                 // A raw button rather than keel's `Button`, because the content is a
                 // label with a trailing arrow that becomes a lone spinner mid-request,
