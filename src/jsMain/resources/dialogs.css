@@ -28,19 +28,10 @@
   text-transform: uppercase;
 }
 
-/* A field and the toolbar that belongs to it, kept together so the toolbar can
-   never end up beside the wrong one. */
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-  align-items: flex-start;
-}
-
-.field > .input,
-.field > .textarea {
-  width: 100%;
-}
+/* `.field` used to live here: a column holding a field and its formatting toolbar,
+   with a `width: 100%` on whichever of the two boxes was inside. Nothing has emitted
+   it since the editor moved to keel's `FormattingField`, which is that column - and
+   keel's own fields are full-width, so the override had nothing to correct either. */
 
 .editor__row {
   display: flex;
@@ -60,73 +51,17 @@
   font-size: 0.75rem;
 }
 
-.editor__ghost-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
-  width: fit-content;
-  border: none;
-  border-radius: 0.375rem;
-  padding: 0.25rem 0.5rem;
-  background-color: transparent;
-  color: hsl(var(--muted-foreground));
-  font-family: inherit;
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition:
-    background-color 150ms ease,
-    color 150ms ease;
-}
+/* Three button treatments used to be written out here: a quiet one, a tinted primary
+   one and a solid destructive one, each at its own size. All three are keel's, at
+   `ButtonSize.ExtraSmall` - a tier that exists because of this file. What is left is
+   the one thing keel cannot know.
 
-.editor__ghost-button:hover {
-  background-color: hsl(var(--muted) / 0.5);
-  color: hsl(var(--foreground));
-}
-
-.editor__ghost-button--danger:hover {
-  background-color: transparent;
-  color: hsl(var(--destructive));
-}
-
-.editor__primary-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  border: none;
-  border-radius: 0.5rem;
-  padding: 0.375rem 0.75rem;
-  background-color: hsl(var(--primary) / 0.1);
-  color: hsl(var(--primary));
-  font-family: inherit;
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background-color 150ms ease;
-}
-
-.editor__primary-button:hover:not(:disabled) {
-  background-color: hsl(var(--primary) / 0.2);
-}
-
-.editor__primary-button:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-.editor__danger-button {
-  border: none;
-  border-radius: 0.5rem;
-  padding: 0.375rem 0.75rem;
-  background-color: hsl(var(--destructive));
-  color: hsl(var(--destructive-foreground));
-  font-family: inherit;
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.editor__danger-button:hover {
-  background-color: hsl(var(--destructive) / 0.9);
+   Two of the quiet buttons - "New tag" and "Add subtask" - sit directly inside
+   `.editor__section`, which is a flex column, so without this they stretch to the
+   dialog's full width. `align-self` rather than `width: fit-content` because the
+   problem is cross-axis stretch, not width. */
+.editor__inline-action {
+  align-self: flex-start;
 }
 
 /* ----- new tag ----- */
@@ -159,23 +94,14 @@
   gap: 0.5rem;
 }
 
-.swatch {
-  width: 1rem;
-  height: 1rem;
-  border: none;
-  border-radius: 9999px;
-  cursor: pointer;
-  transition: transform 150ms ease;
-}
+/* The colour swatches used to be written out here, and again in the settings panel.
+   Both are keel's `.swatch` at `Small` now. Leaving a copy behind would have been
+   worse than duplication: this sheet loads after keel's, so a `.swatch` here would
+   shadow keel's rule rather than merely repeat it.
 
-.swatch:hover {
-  transform: scale(1.1);
-}
-
-.swatch--on {
-  transform: scale(1.25);
-  box-shadow: 0 0 0 1px hsl(var(--background)), 0 0 0 3px currentColor;
-}
+   One visible change came out of it. The selected swatch used to grow 25% as well as
+   taking a ring; keel rings it without the growth, because in a wrapped grid of ten a
+   swatch that grows nudges its neighbours and can reflow the row. */
 
 /* ----- subtasks in the dialogs ----- */
 
@@ -184,27 +110,21 @@
   min-width: 0;
 }
 
+/* keel's `QuietDestructive` at `IconExtraSmall` gives the box, the radius and the
+   red-under-the-pointer. What is here is the one part it cannot: this control is not
+   dimmed at rest, it is absent, and only the row being hovered brings it out. Quiet
+   is about how loud a control is; this is about whether it is there at all. */
 .subtask__delete {
-  display: inline-flex;
   flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
-  border: none;
-  border-radius: 0.25rem;
-  background-color: transparent;
   color: transparent;
-  cursor: pointer;
-  transition: color 150ms ease;
 }
 
-.subtask:hover .subtask__delete {
+/* `:not(:hover)` matters. Both this and keel's `.btn--quiet-destructive:hover` set
+   `color`, both are specificity (0,2,0), and this sheet loads later - so without the
+   exclusion the reveal colour would win over the red on the one hover that should
+   show it, which is the pointer resting on the button itself. */
+.subtask:hover .subtask__delete:not(:hover) {
   color: hsl(var(--muted-foreground) / 0.5);
-}
-
-.subtask__delete:hover {
-  color: hsl(var(--destructive));
 }
 
 /* ----- delete section ----- */

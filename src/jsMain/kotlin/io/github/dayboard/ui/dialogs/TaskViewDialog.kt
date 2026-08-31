@@ -2,21 +2,20 @@ package io.github.dayboard.ui.dialogs
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.key
+import io.github.bchmsl.keel.components.Button
+import io.github.bchmsl.keel.components.ButtonSize
+import io.github.bchmsl.keel.components.Checkbox
+import io.github.bchmsl.keel.components.Dialog
+import io.github.bchmsl.keel.components.FormattedText
+import io.github.bchmsl.keel.components.Pill
+import io.github.bchmsl.keel.icons.Icon
+import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.data.ListDragController
 import io.github.dayboard.data.TasksController
-import io.github.dayboard.domain.model.TagShade
-import io.github.dayboard.domain.model.background
 import io.github.dayboard.ui.cards.DragHandleOrSpacer
 import io.github.dayboard.ui.cards.ICON_TINY
-import io.github.dayboard.ui.cards.TaskCheckbox
-import io.github.dayboard.ui.components.Dialog
-import io.github.dayboard.ui.components.FormattedText
-import io.github.dayboard.ui.icons.Icon
-import io.github.dayboard.ui.icons.LucideIcon
-import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.P
-import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
 
 /**
@@ -55,16 +54,7 @@ fun TaskViewDialog(
             if (tags.isNotEmpty()) {
                 Div({ classes("viewer__tags") }) {
                     tags.forEach { tag ->
-                        Span({
-                            classes("pill")
-                            style {
-                                property("background-color", tag.background(TagShade.Pill))
-                                property("color", tag.color)
-                            }
-                        }) {
-                            tag.emoji?.let { Span({ classes("pill__emoji") }) { Text(it) } }
-                            Text(tag.name)
-                        }
+                        Pill(label = tag.name, color = tag.color, emoji = tag.emoji)
                     }
                 }
             }
@@ -100,15 +90,19 @@ fun TaskViewDialog(
                             }
                         }
 
-                        TaskCheckbox(
-                            done = subtask.done,
-                            label = if (subtask.done) "Mark as not done" else "Mark as done",
-                            onToggle = { tasks.toggleDone(subtask.id) },
+                        Checkbox(
+                            checked = subtask.done,
+                            onCheckedChange = { tasks.toggleDone(subtask.id) },
+                            ariaLabel = if (subtask.done) {
+                                "Mark as not done"
+                            } else {
+                                "Mark as done"
+                            },
                         )
 
                         FormattedText(
                             text = subtask.text,
-                            classNames = listOfNotNull(
+                            extraClasses = listOfNotNull(
                                 "subtask__text",
                                 "subtask__text--done".takeIf { subtask.done },
                             ),
@@ -119,13 +113,12 @@ fun TaskViewDialog(
             }
 
             Div({ classes("viewer__actions") }) {
-                Button({
-                    classes("editor__primary-button")
-                    onClick { onEdit() }
-                }) {
-                    Icon(LucideIcon.Pencil, size = ICON_TINY)
-                    Text("Edit task")
-                }
+                Button(
+                    label = "Edit task",
+                    onClick = onEdit,
+                    size = ButtonSize.ExtraSmall,
+                    leading = { Icon(LucideIcon.Pencil, size = ICON_TINY) },
+                )
             }
         }
     }

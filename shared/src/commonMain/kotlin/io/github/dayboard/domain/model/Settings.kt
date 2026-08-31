@@ -1,5 +1,8 @@
 package io.github.dayboard.domain.model
 
+import io.github.bchmsl.keel.theme.ColorMode
+import io.github.bchmsl.keel.theme.KeelThemes
+
 /**
  * Which face the app leads with.
  *
@@ -39,7 +42,12 @@ data class Settings(
     val autoStartFocus: Boolean = false,
     val soundEnabled: Boolean = true,
     val soundVolume: Int = 70,
-    val themeId: ThemeId = ThemeId.Default,
+    // A raw id rather than a resolved `Theme`: resolving one needs the catalogue,
+    // which lives with the app rather than the domain, and `ThemeController` is
+    // exactly the thing that does the resolving. Stored and read as this same
+    // string, so the wire format is unchanged from before the theme model moved
+    // to `keel`.
+    val themeId: String = KeelThemes.Coral.id,
     val colorMode: ColorMode = ColorMode.Default,
     val displayMode: DisplayMode = DisplayMode.Default,
     val showSeconds: Boolean = false,

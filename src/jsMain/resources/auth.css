@@ -24,18 +24,17 @@
   font-weight: 600;
 }
 
-.auth__brand .icon {
+.auth__brand-icon {
   color: hsl(var(--primary));
 }
 
+/* How wide the card is, and nothing else. The border, the radius, the card colour and
+   the shadow are keel's `Surface` with `elevated = true` - and `--shadow-sm` is the
+   value that was written here by hand, except that keel also has a darker one for the
+   dark palettes, where a 5% black shadow is invisible. */
 .auth__card {
   width: 100%;
   max-width: 24rem;
-  border: 1px solid hsl(var(--border));
-  border-radius: calc(var(--radius) + 4px);
-  background-color: hsl(var(--card));
-  padding: 1.5rem;
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
 }
 
 .auth__heading {
@@ -63,7 +62,7 @@
   align-items: center;
 }
 
-.auth__field .icon {
+.auth__field-icon {
   position: absolute;
   left: 0.75rem;
   color: hsl(var(--muted-foreground));
@@ -71,69 +70,26 @@
   pointer-events: none;
 }
 
+/* Room on one side for the icon laid over the field's left edge. Everything else about
+   the box - the border, the radius, the fill, the placeholder colour and the focus glow
+   - is keel's `TextField`. The fill moves from `--background` to keel's `--card`, which
+   makes this field match the ones in every dialog, where `.field` has always wrapped
+   keel's `.input`. */
 .auth__input {
-  width: 100%;
-  border: 1px solid hsl(var(--input));
-  border-radius: var(--radius);
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
-  padding: 0.625rem 1rem 0.625rem 2.5rem;
-  font-size: 0.875rem;
-  font-family: inherit;
-  transition: box-shadow 150ms ease;
+  padding-left: 2.5rem;
 }
 
-.auth__input::placeholder {
-  color: hsl(var(--muted-foreground));
-}
-
-.auth__input:focus {
-  outline: none;
-  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
-}
-
-.auth__submit {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  border: 0;
-  border-radius: var(--radius);
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  padding: 0.625rem 1rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  font-family: inherit;
-  cursor: pointer;
-  transition:
-    background-color 150ms ease,
-    opacity 150ms ease;
-}
-
-.auth__submit:hover:not(:disabled) {
-  background-color: hsl(var(--primary) / 0.9);
-}
-
-.auth__submit:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-/* The submit button swaps its label for this while the request is in flight. */
-.auth__error {
-  margin: 0;
-  font-size: 0.875rem;
-  color: hsl(var(--destructive));
-}
-
-/* Success is the theme's secondary rather than a green of its own, so it stays
-   inside the palette in all twelve themes. */
-.auth__message {
-  margin: 0;
-  font-size: 0.875rem;
-  color: hsl(var(--secondary));
-}
+/* `.auth__submit` is gone: keel's `Button`, which brings the fill, the hover, the
+   radius, the gap between label and icon, and the disabled fade. The button keeps its
+   raw element rather than calling `Button()`, because its content is a label with a
+   trailing arrow that becomes a lone spinner mid-request, and the composable has a
+   leading slot but no trailing one. It takes `buttonClasses()` so a keel rename is a
+   compiler error rather than an unstyled control. */
+/* `.auth__error` and `.auth__message` are gone: both are keel `Callout`s now, which
+   is the component for a sentence about the screen rather than about an action just
+   taken. Each was one line of tinted text - `--destructive` for the failure and
+   `--secondary` for the confirmation - and keel measured that exact pair as failing
+   contrast on the light palettes, which is why its tones tint the box instead. */
 
 .auth__toggle {
   margin: 1rem 0 0;
@@ -142,17 +98,10 @@
   color: hsl(var(--muted-foreground));
 }
 
+/* All this rule did was rebuild `ButtonVariant.Link` from resets, down to the same
+   weight, the same colour and the same hover underline - it existed because every keel
+   button size forced a control height into this sentence. `ButtonSize.Inline` is that
+   missing size, so the only thing left here is the space after the prompt. */
 .auth__toggle-action {
-  border: 0;
-  background: none;
-  padding: 0;
   margin-left: 0.25rem;
-  font: inherit;
-  font-weight: 500;
-  color: hsl(var(--primary));
-  cursor: pointer;
-}
-
-.auth__toggle-action:hover {
-  text-decoration: underline;
 }

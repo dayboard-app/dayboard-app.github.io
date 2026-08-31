@@ -1,40 +1,15 @@
 /*
-  The settings panel: a sheet that slides in from the right over a blurred board.
+  The settings panel's layout, and nothing else.
 
-  A sheet rather than a dialog because it is a long list of controls rather than one
-  decision, and because everything in it applies at once - there is nothing to
-  confirm and nothing to cancel, so it does not need to sit in the middle of the
-  screen demanding attention.
+  The sheet itself is keel's `Drawer` - the same flex column at the same 24rem,
+  entering from the same edge, with the same scrim behind it. What used to be here was
+  a second one of those, plus a `@keyframes panel-in` that was keel's slide written
+  again, plus six controls that were keel's variants written by hand.
+
+  What is left is where things sit inside the sheet: its header, its scrolling body,
+  the shape of a settings row. None of that is a component, which is why none of it
+  went.
 */
-
-.panel__scrim {
-  position: fixed;
-  inset: 0;
-  z-index: 50;
-  background-color: hsl(var(--background) / 0.6);
-  backdrop-filter: blur(4px);
-}
-
-.panel {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  z-index: 60;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-width: 24rem;
-  border-left: 1px solid hsl(var(--border));
-  background-color: hsl(var(--card));
-  animation: panel-in 200ms ease-out;
-}
-
-@keyframes panel-in {
-  from {
-    transform: translateX(100%);
-  }
-}
 
 .panel__header {
   display: flex;
@@ -51,26 +26,9 @@
   font-weight: 600;
 }
 
-.panel__close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border: none;
-  border-radius: 0.5rem;
-  background-color: transparent;
-  color: hsl(var(--muted-foreground));
-  cursor: pointer;
-  transition:
-    background-color 150ms ease,
-    color 150ms ease;
-}
-
-.panel__close:hover {
-  background-color: hsl(var(--muted));
-  color: hsl(var(--foreground));
-}
+/* The close button is keel's `IconButton` at `Quiet` and `IconExtraSmall`, which is
+   the colour pair and very nearly the box this rule spelled out - 1.75rem where it
+   said 2rem, at the same 8px radius. */
 
 /* The body scrolls; the header stays. A settings list is long, and losing the way
    out of it while scrolling would be unkind. */
@@ -161,32 +119,20 @@
   gap: 0.5rem;
 }
 
-.panel__field-row > .input {
+/* This used to be written `.panel__field-row > .input`, naming keel's class from
+   here to lay out this app's row. Its own class instead: the rule is the same, and
+   a rename in keel now fails to compile rather than silently unstyling a field. */
+.panel__field-input {
   flex: 1;
   min-width: 0;
 }
 
-.panel__auto-button {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: 0.25rem;
-  border: 1px solid hsl(var(--border));
-  border-radius: 0.5rem;
-  padding: 0.375rem 0.625rem;
-  background-color: transparent;
-  color: hsl(var(--muted-foreground));
-  font-family: inherit;
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition:
-    background-color 150ms ease,
-    color 150ms ease;
-}
+/* The "Auto" button beside it is keel's `Outline` at `ExtraSmall`. */
 
-.panel__auto-button:hover {
-  background-color: hsl(var(--muted));
-  color: hsl(var(--foreground));
+/* A full-width control - the one in the notifications section. keel sizes a button by
+   its content, correctly, so filling a column is the caller's business. */
+.panel__wide-action {
+  width: 100%;
 }
 
 .panel__hint {
@@ -204,85 +150,19 @@
 
 /* ----- appearance ----- */
 
+/* Six themes, three across. The tiles are keel's `SwatchTile`; this is only the grid
+   they sit in, which is the app's decision - the same six in a toolbar would be a
+   row of bare swatches, which is what keel's own gallery does with them. */
 .panel__themes {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.5rem;
 }
 
-.theme {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  border: 1px solid hsl(var(--border));
-  border-radius: 0.5rem;
-  padding: 0.5rem;
-  background-color: transparent;
-  color: hsl(var(--foreground));
-  font-family: inherit;
-  font-size: 0.75rem;
-  cursor: pointer;
-  transition:
-    background-color 150ms ease,
-    border-color 150ms ease;
-}
-
-.theme:hover {
-  background-color: hsl(var(--muted) / 0.5);
-}
-
-.theme--on {
-  border-color: hsl(var(--primary));
-  background-color: hsl(var(--primary) / 0.08);
-}
-
-/* The swatch is the theme's own accent, which is the only honest way to show what
-   picking it will do. */
-.theme__dot {
-  width: 0.75rem;
-  height: 0.75rem;
-  flex: none;
-  border-radius: 9999px;
-}
-
-.panel__modes {
-  display: flex;
-  gap: 0.25rem;
-  border-radius: calc(var(--radius) - 2px);
-  padding: 0.25rem;
-  background-color: hsl(var(--muted));
-}
-
-.mode {
-  display: inline-flex;
-  flex: 1;
-  align-items: center;
-  justify-content: center;
-  gap: 0.25rem;
-  border: none;
-  border-radius: calc(var(--radius) - 4px);
-  padding: 0.375rem;
-  background-color: transparent;
-  color: hsl(var(--muted-foreground));
-  font-family: inherit;
-  font-size: 0.75rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background-color 150ms ease,
-    color 150ms ease;
-}
-
-.mode:hover {
-  color: hsl(var(--foreground));
-}
-
-.mode--on,
-.mode--on:hover {
-  background-color: hsl(var(--card));
-  color: hsl(var(--foreground));
-  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05);
-}
+/* The mode strip is keel's `SegmentedControl` at `fill`. It was the same idea drawn
+   twice: the same `--muted` track, the same `--card` lift on the chosen one, at a
+   slightly different radius and padding that were never decisions. What is gained is
+   a real radio group - one tab stop for the strip and arrow keys between the three. */
 
 /* ----- tags ----- */
 
@@ -292,62 +172,30 @@
   gap: 0.375rem;
 }
 
-/* Pushes the controls to the right of whatever width the pill happens to be. */
-.panel__tag-row > .pill {
-  margin-right: auto;
-}
-
-.panel__tag-action {
-  display: inline-flex;
+/* The controls, in their own box so the pill beside them keeps its natural width.
+   This is what replaced `margin-right: auto` on keel's `.pill`, which meant naming a
+   keel class here to lay out a row of this app's own. */
+.panel__tag-actions {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border: none;
-  border-radius: 0.375rem;
-  background-color: transparent;
+  gap: 0.375rem;
+  margin-left: auto;
+}
+
+/* Both actions are keel's `IconButton` at `IconExtraSmall`, one `Quiet` and one
+   `QuietDestructive`. What is left is the one thing keel cannot know: these controls
+   are not dimmed at rest, they are absent, and only the row being hovered brings them
+   out. Quiet is about how loud a control is; this is about whether it is there. */
+.panel__tag-action {
   color: transparent;
-  cursor: pointer;
-  transition: color 150ms ease;
 }
 
-.panel__tag-row:hover .panel__tag-action {
+/* `:not(:hover)` matters. Both this and keel's own hover rules set `color`, both are
+   specificity (0,2,0), and this sheet loads later - so without the exclusion the
+   reveal colour would win over keel's on the one hover that should show it, which is
+   the pointer resting on the button itself. */
+.panel__tag-row:hover .panel__tag-action:not(:hover) {
   color: hsl(var(--muted-foreground));
-}
-
-.panel__tag-action:hover {
-  color: hsl(var(--foreground));
-}
-
-.panel__tag-action--danger:hover {
-  color: hsl(var(--destructive));
-}
-
-.panel__tag-danger {
-  border: none;
-  border-radius: 0.375rem;
-  padding: 0.25rem 0.5rem;
-  background-color: hsl(var(--destructive));
-  color: hsl(var(--destructive-foreground));
-  font-family: inherit;
-  font-size: 0.6875rem;
-  font-weight: 500;
-  cursor: pointer;
-}
-
-.panel__tag-cancel {
-  border: none;
-  border-radius: 0.375rem;
-  padding: 0.25rem 0.5rem;
-  background-color: transparent;
-  color: hsl(var(--muted-foreground));
-  font-family: inherit;
-  font-size: 0.6875rem;
-  cursor: pointer;
-}
-
-.panel__tag-cancel:hover {
-  background-color: hsl(var(--muted));
 }
 
 /* ----- sign out ----- */
@@ -357,61 +205,6 @@
   padding-top: 1.25rem;
 }
 
-.panel__sign-out-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  border: none;
-  border-radius: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  background-color: transparent;
-  color: hsl(var(--muted-foreground));
-  font-family: inherit;
-  font-size: 0.875rem;
-  cursor: pointer;
-  transition:
-    background-color 150ms ease,
-    color 150ms ease;
-}
-
-.panel__sign-out-button:hover {
-  background-color: hsl(var(--destructive) / 0.1);
-  color: hsl(var(--destructive));
-}
-
-/* ----- notifications ----- */
-
-.panel__enable-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  width: 100%;
-  border: 1px solid hsl(var(--border));
-  border-radius: 0.5rem;
-  padding: 0.5rem;
-  background-color: transparent;
-  color: hsl(var(--foreground));
-  font-family: inherit;
-  font-size: 0.8125rem;
-  cursor: pointer;
-  transition: background-color 150ms ease;
-}
-
-.panel__enable-button:hover {
-  background-color: hsl(var(--muted) / 0.5);
-}
-
-/* Static, not a control: once the browser has granted permission there is nothing
-   here left to press. */
-.panel__enabled {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  border-radius: 0.5rem;
-  padding: 0.5rem;
-  background-color: hsl(var(--primary) / 0.1);
-  color: hsl(var(--primary));
-  font-size: 0.8125rem;
-  font-weight: 500;
-}
+/* The button is keel's `QuietDestructive`: muted at rest, `--destructive` over a
+   tint of itself under the pointer. Which is exactly what this rule described, and
+   `--quiet-danger-tint` is the number it used. */

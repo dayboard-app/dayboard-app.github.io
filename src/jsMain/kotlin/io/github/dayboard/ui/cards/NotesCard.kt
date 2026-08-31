@@ -6,26 +6,26 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import io.github.bchmsl.keel.color.SwatchShade
+import io.github.bchmsl.keel.components.EmptyState
+import io.github.bchmsl.keel.components.FormattedText
+import io.github.bchmsl.keel.components.Pill
+import io.github.bchmsl.keel.components.PillSize
+import io.github.bchmsl.keel.components.Spinner
+import io.github.bchmsl.keel.icons.Icon
+import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.data.ListDragController
 import io.github.dayboard.data.NotesController
 import io.github.dayboard.domain.model.Note
 import io.github.dayboard.domain.model.Tag
-import io.github.dayboard.domain.model.TagShade
-import io.github.dayboard.domain.model.background
 import io.github.dayboard.domain.model.hasDetail
-import io.github.dayboard.ui.components.FormattedText
-import io.github.dayboard.ui.icons.Icon
-import io.github.dayboard.ui.icons.LucideIcon
-import org.jetbrains.compose.web.attributes.InputType
-import org.jetbrains.compose.web.attributes.placeholder
+import org.jetbrains.compose.web.attributes.onSubmit as onSubmitAttribute
 import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Form
-import org.jetbrains.compose.web.dom.Input
 import org.jetbrains.compose.web.dom.P
 import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
-import org.jetbrains.compose.web.attributes.onSubmit as onSubmitAttribute
 
 /**
  * The note list: an add box, a tag filter, and the notes.
@@ -59,7 +59,7 @@ fun NotesCard(
         )
 
         if (notes.allTags.isNotEmpty()) {
-            NoteFilterRow(
+            TagFilterRow(
                 tags = notes.allTags,
                 selectedId = notes.filterTagId,
                 onSelect = notes::setFilter,
@@ -67,20 +67,16 @@ fun NotesCard(
         }
 
         when {
-            !notes.loaded -> NotesNotice {
-                Icon(LucideIcon.LoaderCircle, size = ICON_MEDIUM, className = "spinner")
+            !notes.loaded -> Div({ classes("tasks__notice") }) {
+                Spinner()
                 Span { Text("Loading notes...") }
             }
 
-            notes.visible.isEmpty() -> NotesNotice {
-                Text(
-                    if (notes.filterTagId != null) {
-                        "No notes with this tag."
-                    } else {
-                        "No notes yet — type above to get started."
-                    },
-                )
-            }
+            notes.visible.isEmpty() && notes.filterTagId != null ->
+                EmptyState(title = "No notes with this tag")
+
+            notes.visible.isEmpty() ->
+                EmptyState(title = "No notes yet", body = "Type above to get started.")
 
             else -> NoteRows(notes, drag, onEditNote, onViewNote)
         }
@@ -96,67 +92,21 @@ private fun AddNoteForm(draft: String, onDraftChange: (String) -> Unit, onSubmit
             onSubmit()
         }
     }) {
-        Input(InputType.Text) {
-            classes("tasks__add-input")
-            value(draft)
-            placeholder("Add a new note...")
-            attr("aria-label", "Add a new note")
-            onInput { event -> onDraftChange(event.value) }
-        }
+        AddRowField(
+            draft = draft,
+            onDraftChange = onDraftChange,
+            placeholder = "Add a new note...",
+            ariaLabel = "Add a new note",
+        )
 
-        Button({
-            classes("tasks__add-button")
-            attr("type", "submit")
-            attr("aria-label", "Add note")
-            if (draft.isBlank()) attr("disabled", "")
-        }) {
-            Icon(LucideIcon.Plus, size = ICON_SMALL)
-        }
+        AddRowButton(enabled = draft.isNotBlank(), ariaLabel = "Add note")
     }
 }
 
-@Composable
-private fun NoteFilterRow(tags: List<Tag>, selectedId: String?, onSelect: (String?) -> Unit) {
-    Div({ classes("tasks__filters") }) {
-        Icon(LucideIcon.Filter, size = ICON_TINY, className = "tasks__filter-icon")
-
-        Button({
-            classes(
-                *listOfNotNull("chip", "chip--all", "chip--on".takeIf { selectedId == null })
-                    .toTypedArray(),
-            )
-            attr("aria-pressed", (selectedId == null).toString())
-            onClick { onSelect(null) }
-        }) {
-            Text("All")
-        }
-
-        tags.forEach { tag ->
-            val on = tag.id == selectedId
-
-            Button({
-                classes(*listOfNotNull("chip", "chip--on".takeIf { on }).toTypedArray())
-                attr("aria-pressed", on.toString())
-                style {
-                    property(
-                        "background-color",
-                        tag.background(if (on) TagShade.Selected else TagShade.Faint),
-                    )
-                    property("color", tag.color)
-                }
-                onClick { onSelect(tag.id) }
-            }) {
-                tag.emoji?.let { Span({ classes("chip__emoji") }) { Text(it) } }
-                Text(tag.name)
-            }
-        }
-    }
-}
-
-@Composable
-private fun NotesNotice(content: @Composable () -> Unit) {
-    Div({ classes("tasks__notice") }) { content() }
-}
+/* `NoteFilterRow` used to live here, and it was `TagFilterRow` again: the same row,
+   over the same tag vocabulary, differing only in which controller it called. Once
+   both were keel's `PillButton` the two bodies were identical, so the tasks card's is
+   the one that remains. */
 
 @Composable
 private fun NoteRows(
@@ -238,33 +188,24 @@ private fun NoteRow(
                 classes("task__title")
                 onClick { onViewNote(note.id) }
             }) {
-                FormattedText(text = note.title, classNames = listOf("task__text"))
+                FormattedText(text = note.title, extraClasses = listOf("task__text"))
 
                 // Only while collapsed: expanding shows the same tags with room
                 // around them, and both at once would be the same thing twice.
                 if (!open) {
                     tags.forEach { tag ->
-                        Span({
-                            classes("pill", "pill--inline")
-                            style {
-                                property("background-color", tag.background(TagShade.Inline))
-                                property("color", tag.color)
-                            }
-                        }) {
-                            tag.emoji?.let { Span({ classes("pill__emoji") }) { Text(it) } }
-                            Text(tag.name)
-                        }
+                        Pill(
+                            label = tag.name,
+                            color = tag.color,
+                            shade = SwatchShade.Inline,
+                            emoji = tag.emoji,
+                            size = PillSize.Inline,
+                        )
                     }
                 }
             }
 
-            Button({
-                classes("task__edit")
-                attr("aria-label", "Edit")
-                onClick { onEditNote(note.id) }
-            }) {
-                Icon(LucideIcon.Pencil, size = ICON_TINY)
-            }
+            EditRowButton(ariaLabel = "Edit note", onClick = { onEditNote(note.id) })
         }
 
         if (open) {
@@ -279,16 +220,7 @@ private fun NoteDetail(note: Note, tags: List<Tag>, onViewNote: () -> Unit) {
         if (tags.isNotEmpty()) {
             Div({ classes("task__tags") }) {
                 tags.forEach { tag ->
-                    Span({
-                        classes("pill")
-                        style {
-                            property("background-color", tag.background(TagShade.Pill))
-                            property("color", tag.color)
-                        }
-                    }) {
-                        tag.emoji?.let { Span({ classes("pill__emoji") }) { Text(it) } }
-                        Text(tag.name)
-                    }
+                    Pill(label = tag.name, color = tag.color, emoji = tag.emoji)
                 }
             }
         }

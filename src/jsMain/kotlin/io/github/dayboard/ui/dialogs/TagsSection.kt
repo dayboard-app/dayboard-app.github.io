@@ -5,23 +5,25 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import io.github.dayboard.domain.model.DEFAULT_TAG_COLOR
-import io.github.dayboard.domain.model.TAG_COLORS
+import io.github.bchmsl.keel.color.SwatchShade
+import io.github.bchmsl.keel.color.Swatches
+import io.github.bchmsl.keel.components.Button
+import io.github.bchmsl.keel.components.ButtonSize
+import io.github.bchmsl.keel.components.ButtonVariant
+import io.github.bchmsl.keel.components.PillButton
+import io.github.bchmsl.keel.components.PillSize
+import io.github.bchmsl.keel.components.Swatch
+import io.github.bchmsl.keel.components.SwatchSize
+import io.github.bchmsl.keel.components.TextField
+import io.github.bchmsl.keel.dom.classNames
+import io.github.bchmsl.keel.icons.Icon
+import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.domain.model.TAG_EMOJI_MAX_LENGTH
 import io.github.dayboard.domain.model.Tag
-import io.github.dayboard.domain.model.TagShade
-import io.github.dayboard.domain.model.background
 import io.github.dayboard.ui.cards.ICON_MICRO
 import io.github.dayboard.ui.cards.ICON_TINY
-import io.github.dayboard.ui.icons.Icon
-import io.github.dayboard.ui.icons.LucideIcon
-import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.maxLength
-import org.jetbrains.compose.web.attributes.placeholder
-import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
-import org.jetbrains.compose.web.dom.Input
-import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
 
 /**
@@ -52,7 +54,7 @@ fun TagsSection(
         if (attached.isNotEmpty()) {
             Div({ classes("editor__tags") }) {
                 attached.forEach { tag ->
-                    TagPill(tag, TagShade.Pill, "Remove tag ${tag.name}") { onToggle(tag.id) }
+                    TagPill(tag, SwatchShade.Pill, "Remove tag ${tag.name}") { onToggle(tag.id) }
                 }
             }
         }
@@ -60,7 +62,7 @@ fun TagsSection(
         if (available.isNotEmpty()) {
             Div({ classes("editor__tags") }) {
                 available.forEach { tag ->
-                    TagPill(tag, TagShade.Faint, "Add tag ${tag.name}", small = true) {
+                    TagPill(tag, SwatchShade.Faint, "Add tag ${tag.name}", small = true) {
                         onToggle(tag.id)
                     }
                 }
@@ -76,44 +78,44 @@ fun TagsSection(
                 },
             )
         } else {
-            Button({
-                classes("editor__ghost-button")
-                attr("type", "button")
-                onClick { creating = true }
-            }) {
-                Icon(LucideIcon.Plus, size = ICON_TINY)
-                Text("New tag")
-            }
+            Button(
+                label = "New tag",
+                onClick = { creating = true },
+                variant = ButtonVariant.Quiet,
+                size = ButtonSize.ExtraSmall,
+                attrs = { classNames("editor__inline-action") },
+                leading = { Icon(LucideIcon.Plus, size = ICON_TINY) },
+            )
         }
     }
 }
 
+/**
+ * A [Tag] as keel's `PillButton`.
+ *
+ * The fill and the ink come from the tag's own colour, which keel resolves from
+ * [shade] - so the two shades this section uses, a full pill for an attached tag and a
+ * faint one for an available tag, are the same component at two strengths.
+ */
 @Composable
 private fun TagPill(
     tag: Tag,
-    shade: TagShade,
+    shade: SwatchShade,
     ariaLabel: String,
     small: Boolean = false,
     onClick: () -> Unit,
 ) {
-    Button({
-        classes(
-            *listOfNotNull("pill", "pill--button", "pill--small".takeIf { small })
-                .toTypedArray(),
-        )
-        attr("type", "button")
-        attr("aria-label", ariaLabel)
-        style {
-            property("background-color", tag.background(shade))
-            property("color", tag.color)
-        }
-        onClick { onClick() }
-    }) {
-        tag.emoji?.let { Span({ classes("pill__emoji") }) { Text(it) } }
-        Text(tag.name)
+    PillButton(
+        label = tag.name,
+        color = tag.color,
+        ariaLabel = ariaLabel,
+        onClick = onClick,
+        shade = shade,
+        emoji = tag.emoji,
+        size = if (small) PillSize.Small else PillSize.Default,
         // Only an attached tag can be taken off, so only that one gets the cross.
-        if (!small) Icon(LucideIcon.X, size = ICON_MICRO)
-    }
+        trailing = if (small) null else ({ Icon(LucideIcon.X, size = ICON_MICRO) }),
+    )
 }
 
 /**
@@ -130,66 +132,64 @@ private fun TagCreator(
 ) {
     var name by remember { mutableStateOf("") }
     var emoji by remember { mutableStateOf("") }
-    var color by remember { mutableStateOf(DEFAULT_TAG_COLOR) }
+    var color by remember { mutableStateOf(Swatches.Default) }
 
     Div({ classes("creator") }) {
         Div({ classes("creator__row") }) {
-            Input(InputType.Text) {
-                classes("input", "creator__emoji")
-                value(emoji)
-                placeholder("😊")
-                maxLength(TAG_EMOJI_MAX_LENGTH)
-                attr("aria-label", "Tag emoji")
-                onInput { event -> emoji = event.value }
-            }
+            TextField(
+                value = emoji,
+                onValueChange = { emoji = it },
+                placeholder = "\uD83D\uDE0A",
+                ariaLabel = "Tag emoji",
+                attrs = {
+                    classNames("creator__emoji")
+                    maxLength(TAG_EMOJI_MAX_LENGTH)
+                },
+            )
 
-            Input(InputType.Text) {
-                classes("input")
-                value(name)
-                placeholder("Tag name")
-                attr("aria-label", "Tag name")
-                onInput { event -> name = event.value }
-                onKeyDown { event ->
-                    if (event.key == "Enter" && name.isNotBlank()) {
-                        event.preventDefault()
-                        onCreate(name, color, emoji)
+            TextField(
+                value = name,
+                onValueChange = { name = it },
+                placeholder = "Tag name",
+                ariaLabel = "Tag name",
+                attrs = {
+                    onKeyDown { event ->
+                        if (event.key == "Enter" && name.isNotBlank()) {
+                            event.preventDefault()
+                            onCreate(name, color, emoji)
+                        }
                     }
-                }
-            }
+                },
+            )
         }
 
         Div({ classes("creator__colors") }) {
-            TAG_COLORS.forEach { swatch ->
-                Button({
-                    classes(
-                        *listOfNotNull("swatch", "swatch--on".takeIf { swatch == color })
-                            .toTypedArray(),
-                    )
-                    attr("type", "button")
-                    attr("aria-label", "Colour $swatch")
-                    attr("aria-pressed", (swatch == color).toString())
-                    style { property("background-color", swatch) }
-                    onClick { color = swatch }
-                })
+            Swatches.All.forEach { swatch ->
+                Swatch(
+                    color = swatch,
+                    ariaLabel = "Colour $swatch",
+                    selected = swatch == color,
+                    onSelect = { color = swatch },
+                    // `Small`, which is the tier for a grid: what matters here is
+                    // telling ten colours apart, not aiming at one of them.
+                    size = SwatchSize.Small,
+                )
             }
         }
 
         Div({ classes("creator__row") }) {
-            Button({
-                classes("editor__primary-button")
-                attr("type", "button")
-                if (name.isBlank()) attr("disabled", "")
-                onClick { onCreate(name, color, emoji) }
-            }) {
-                Text("Create")
-            }
-            Button({
-                classes("editor__ghost-button")
-                attr("type", "button")
-                onClick { onCancel() }
-            }) {
-                Text("Cancel")
-            }
+            Button(
+                label = "Create",
+                onClick = { onCreate(name, color, emoji) },
+                size = ButtonSize.ExtraSmall,
+                enabled = name.isNotBlank(),
+            )
+            Button(
+                label = "Cancel",
+                onClick = onCancel,
+                variant = ButtonVariant.Quiet,
+                size = ButtonSize.ExtraSmall,
+            )
         }
     }
 }
