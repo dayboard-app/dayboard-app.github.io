@@ -1,0 +1,107 @@
+/*
+ * The sign-in page.
+ *
+ * Proportions follow the original: a narrow centred column, the brand above a
+ * single card, and the form as three stacked controls.
+ */
+
+.auth {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+}
+
+.auth__brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
+
+.auth__brand-icon {
+  color: hsl(var(--primary));
+}
+
+/* How wide the card is, and nothing else. The border, the radius, the card colour and
+   the shadow are keel's `Surface` with `elevated = true` - and `--shadow-sm` is the
+   value that was written here by hand, except that keel also has a darker one for the
+   dark palettes, where a 5% black shadow is invisible. */
+.auth__card {
+  width: 100%;
+  max-width: 24rem;
+}
+
+.auth__heading {
+  margin: 0 0 0.25rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.auth__subtext {
+  margin: 0 0 1.5rem;
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+}
+
+.auth__form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+/* The icon sits inside the field, so the input carries left padding to clear it. */
+.auth__field {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.auth__field-icon {
+  position: absolute;
+  left: 0.75rem;
+  color: hsl(var(--muted-foreground));
+  /* Clicks belong to the input underneath, not to the decoration on top of it. */
+  pointer-events: none;
+}
+
+/* Room on one side for the icon laid over the field's left edge. Everything else about
+   the box - the border, the radius, the fill, the placeholder colour and the focus glow
+   - is keel's `TextField`. The fill moves from `--background` to keel's `--card`, which
+   makes this field match the ones in every dialog, where `.field` has always wrapped
+   keel's `.input`. */
+.auth__input {
+  padding-left: 2.5rem;
+}
+
+/* `.auth__submit` is gone: keel's `Button`, which brings the fill, the hover, the
+   radius, the gap between label and icon, and the disabled fade. The button keeps its
+   raw element rather than calling `Button()`, because its content is a label with a
+   trailing arrow that becomes a lone spinner mid-request, and the composable has a
+   leading slot but no trailing one. It takes `buttonClasses()` so a keel rename is a
+   compiler error rather than an unstyled control. */
+/* `.auth__error` and `.auth__message` are gone: both are keel `Callout`s now, which
+   is the component for a sentence about the screen rather than about an action just
+   taken. Each was one line of tinted text - `--destructive` for the failure and
+   `--secondary` for the confirmation - and keel measured that exact pair as failing
+   contrast on the light palettes, which is why its tones tint the box instead. */
+
+.auth__toggle {
+  margin: 1rem 0 0;
+  text-align: center;
+  font-size: 0.875rem;
+  color: hsl(var(--muted-foreground));
+}
+
+/* All this rule did was rebuild `ButtonVariant.Link` from resets, down to the same
+   weight, the same colour and the same hover underline - it existed because every keel
+   button size forced a control height into this sentence. `ButtonSize.Inline` is that
+   missing size, so the only thing left here is the space after the prompt. */
+.auth__toggle-action {
+  margin-left: 0.25rem;
+}

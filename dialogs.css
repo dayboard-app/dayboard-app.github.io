@@ -1,0 +1,203 @@
+/*
+  The task editor and viewer. The modal shell itself - scrim, panel, close button -
+  is in `components.css`; this is what goes inside one.
+*/
+
+.editor,
+.viewer {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.editor__section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.editor__label,
+.viewer__label {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* `.field` used to live here: a column holding a field and its formatting toolbar,
+   with a `width: 100%` on whichever of the two boxes was inside. Nothing has emitted
+   it since the editor moved to keel's `FormattingField`, which is that column - and
+   keel's own fields are full-width, so the override had nothing to correct either. */
+
+.editor__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.editor__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.editor__empty {
+  padding: 0 0.25rem;
+  color: hsl(var(--muted-foreground) / 0.5);
+  font-size: 0.75rem;
+}
+
+/* Three button treatments used to be written out here: a quiet one, a tinted primary
+   one and a solid destructive one, each at its own size. All three are keel's, at
+   `ButtonSize.ExtraSmall` - a tier that exists because of this file. What is left is
+   the one thing keel cannot know.
+
+   Two of the quiet buttons - "New tag" and "Add subtask" - sit directly inside
+   `.editor__section`, which is a flex column, so without this they stretch to the
+   dialog's full width. `align-self` rather than `width: fit-content` because the
+   problem is cross-axis stretch, not width. */
+.editor__inline-action {
+  align-self: flex-start;
+}
+
+/* ----- new tag ----- */
+
+.creator {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: 0.5rem;
+  padding: 0.625rem;
+  background-color: hsl(var(--muted) / 0.3);
+}
+
+.creator__row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.creator__emoji {
+  width: 2.5rem;
+  flex: none;
+  text-align: center;
+}
+
+.creator__colors {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+/* The colour swatches used to be written out here, and again in the settings panel.
+   Both are keel's `.swatch` at `Small` now. Leaving a copy behind would have been
+   worse than duplication: this sheet loads after keel's, so a `.swatch` here would
+   shadow keel's rule rather than merely repeat it.
+
+   One visible change came out of it. The selected swatch used to grow 25% as well as
+   taking a ring; keel rings it without the growth, because in a wrapped grid of ten a
+   swatch that grows nudges its neighbours and can reflow the row. */
+
+/* ----- subtasks in the dialogs ----- */
+
+.subtask__input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* keel's `QuietDestructive` at `IconExtraSmall` gives the box, the radius and the
+   red-under-the-pointer. What is here is the one part it cannot: this control is not
+   dimmed at rest, it is absent, and only the row being hovered brings it out. Quiet
+   is about how loud a control is; this is about whether it is there at all. */
+.subtask__delete {
+  flex: none;
+  color: transparent;
+}
+
+/* `:not(:hover)` matters. Both this and keel's `.btn--quiet-destructive:hover` set
+   `color`, both are specificity (0,2,0), and this sheet loads later - so without the
+   exclusion the reveal colour would win over the red on the one hover that should
+   show it, which is the pointer resting on the button itself. */
+.subtask:hover .subtask__delete:not(:hover) {
+  color: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* ----- delete section ----- */
+
+.editor__delete {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  border-top: 1px solid hsl(var(--border));
+  padding-top: 1rem;
+}
+
+.editor__warning {
+  color: hsl(var(--destructive));
+  font-size: 0.75rem;
+}
+
+/* ----- viewer ----- */
+
+.viewer__title {
+  padding-right: 2rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.viewer__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.viewer__body {
+  margin: 0;
+  border-radius: 0.5rem;
+  padding: 0.75rem 1rem;
+  background-color: hsl(var(--muted) / 0.3);
+  color: hsl(var(--foreground) / 0.9);
+  font-size: 0.875rem;
+  line-height: 1.625;
+  white-space: pre-wrap;
+}
+
+.viewer__no-notes {
+  margin: 0;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+  font-style: italic;
+}
+
+.viewer__actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* ----- note viewer ----- */
+
+/* A note's title is its own text rather than a heading over other content, so it
+   sits a size below the task viewer's. */
+.viewer__title--note {
+  font-size: 1rem;
+}
+
+/* Keeps a short note from collapsing the dialog to a couple of lines. */
+.viewer__body--note {
+  min-height: 6rem;
+}
+
+.viewer__empty {
+  margin: 0;
+  padding: 1rem 0;
+  color: hsl(var(--muted-foreground));
+  font-size: 0.875rem;
+  font-style: italic;
+  text-align: center;
+}
