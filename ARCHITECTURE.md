@@ -11,8 +11,8 @@ outside world lives in `src/jsMain`.**
 `:shared` has no DOM, no Firebase, no clock it can read and no network it can
 reach. That is not tidiness for its own sake — it is what makes the interesting
 parts testable without a browser or an account. The pomodoro cycle, the drag
-reorder rules, the inline formatting parser and the tag vocabulary are all pure
-functions with tests that run in seconds.
+reorder rules and the tag vocabulary are all pure functions with tests that run
+in seconds.
 
 The split shows up in every feature:
 
@@ -21,7 +21,7 @@ The split shows up in every feature:
 | What the timer becomes when a stretch ends | `TimerState.completed` | `TimerController` |
 | Where a dragged card lands | `CardLayout.moveCard` | `DragController` |
 | Which weather lookup to try | `loadWeather` | `OpenMeteoWeatherRepository` |
-| What `**bold**` means | `parseFormattedText` | `FormattedText` |
+| What `**bold**` means | `keel`'s `parseFormattedText` | `keel`'s `FormattedText` |
 | Whether a task survives a filter | `matchesTagFilter` | `TasksCard` |
 
 `:shared` carries a JVM target purely so Kover can measure it — Kover cannot
@@ -33,7 +33,6 @@ instrument Kotlin/JS. The web app links the JS klib and never sees the JVM one.
 shared/commonMain
   domain/model        values and the rules about them
   domain/repository   what the app needs from the outside, as interfaces
-  domain/text         the inline formatting parser and the toolbar's markers
   domain/usecase      rules that need more than one repository
   presentation        formatting for the screen; routing decisions
   core                the emulator switch
@@ -42,12 +41,37 @@ src/jsMain
   data/               state holders, and the browser and Firebase adapters
   ui/                 Compose HTML
   di/                 the Firebase config
+
+keel/                 the design system: tokens, primitives, icons, the theme
+                       model, the inline-formatting parser - a git submodule,
+                       shared with Dakalebi. See keel/ARCHITECTURE.md.
 ```
 
 There is no dependency-injection framework. `Main.kt` constructs everything and
 hands it down; nothing else calls a constructor. With this many pieces that is
 still one readable function, and it means the graph is a thing you can read
 rather than a thing you have to run.
+
+## Design system
+
+Tokens, primitives, icons, the theme model and the inline-formatting parser all
+live in [`keel`](keel/), a separate design-system repository consumed as a git
+submodule and a composite build (`includeBuild("keel")` in `settings.gradle.kts`).
+It is not specific to Dayboard: [Dakalebi](https://github.com/dakalebi/dakalebi.github.io)
+shares it too, which is why it lives outside this repository rather than in
+`:shared`.
+
+`Settings.themeId` stores the palette as a raw id string rather than a resolved
+`Theme` - resolving one needs the catalogue, which is `keel.theme.KeelThemes`, an
+app-layer concern rather than a domain one. `ThemeController` does the resolving,
+and owns the browser: storage, the media query, and the two attributes on
+`<html>` that `keel/tokens.css` and `keel/palettes.css` select a palette with.
+
+Everything left in this repository's own stylesheets (`screens.css`, `cards.css`,
+`dialogs.css`, `panel.css`, `auth.css`) is Dayboard's own layout: the board, the
+cards' internals, the dialogs' editor and viewer chrome, the settings panel, and
+the sign-in screen. None of it is a candidate for `keel` - it is specific to what
+this app is, not to what a design system provides.
 
 ## State holders
 

@@ -6,30 +6,43 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import io.github.bchmsl.keel.color.Swatches
+import io.github.bchmsl.keel.components.Button
+import io.github.bchmsl.keel.components.ButtonSize
+import io.github.bchmsl.keel.components.ButtonVariant
+import io.github.bchmsl.keel.components.Callout
+import io.github.bchmsl.keel.components.CalloutTone
+import io.github.bchmsl.keel.components.Drawer
+import io.github.bchmsl.keel.components.DrawerLayout
+import io.github.bchmsl.keel.components.IconButton
+import io.github.bchmsl.keel.components.Pill
+import io.github.bchmsl.keel.components.Segment
+import io.github.bchmsl.keel.components.SegmentedControl
+import io.github.bchmsl.keel.components.Slider
+import io.github.bchmsl.keel.components.Swatch
+import io.github.bchmsl.keel.components.SwatchSize
+import io.github.bchmsl.keel.components.SwatchTile
+import io.github.bchmsl.keel.components.Switch
+import io.github.bchmsl.keel.components.TextField
+import io.github.bchmsl.keel.dom.classNames
+import io.github.bchmsl.keel.dom.inputClasses
+import io.github.bchmsl.keel.icons.Icon
+import io.github.bchmsl.keel.icons.LucideIcon
+import io.github.bchmsl.keel.theme.ColorMode
+import io.github.bchmsl.keel.theme.ThemeController
 import io.github.dayboard.data.NotificationController
 import io.github.dayboard.data.SettingsController
 import io.github.dayboard.data.TagsController
-import io.github.dayboard.data.ThemeController
-import io.github.dayboard.domain.model.ColorMode
 import io.github.dayboard.domain.model.NotificationPermission
 import io.github.dayboard.domain.model.SettingRange
 import io.github.dayboard.domain.model.Settings
-import io.github.dayboard.domain.model.TAG_COLORS
 import io.github.dayboard.domain.model.TAG_EMOJI_MAX_LENGTH
 import io.github.dayboard.domain.model.Tag
-import io.github.dayboard.domain.model.TagShade
-import io.github.dayboard.domain.model.ThemeId
-import io.github.dayboard.domain.model.background
 import io.github.dayboard.ui.cards.ICON_SMALL
 import io.github.dayboard.ui.cards.ICON_TINY
-import io.github.dayboard.ui.components.Slider
-import io.github.dayboard.ui.components.Switch
-import io.github.dayboard.ui.icons.Icon
-import io.github.dayboard.ui.icons.LucideIcon
 import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.maxLength
 import org.jetbrains.compose.web.attributes.placeholder
-import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.H2
 import org.jetbrains.compose.web.dom.Input
@@ -60,27 +73,27 @@ fun SettingsPanel(
 ) {
     val current = settings.settings
 
-    Div({
-        classes("panel__scrim")
-        onClick { onDismiss() }
-    })
-
-    Div({
-        classes("panel")
-        attr("role", "dialog")
-        attr("aria-modal", "true")
-        attr("aria-label", "Settings")
-        // The scrim is behind this, so a click inside would otherwise bubble out to
-        // it and close the panel being used.
-        onClick { event -> event.stopPropagation() }
-    }) {
+    // keel's `Drawer`, which is the same sheet this panel hand-wrote: the same flex
+    // column at the same 24rem, entering from the same edge. It brings two things the
+    // local version did not have - Escape dismisses it, and focus moves in on open
+    // and returns to the settings button on close.
+    //
+    // The scrim comes with it, so the `stopPropagation` that used to guard against a
+    // click bubbling out to a sibling backdrop is gone: keel's scrim is a separate
+    // element with its own handler, not an ancestor of this one.
+    Drawer(
+        onDismiss = onDismiss,
+        ariaLabel = "Settings",
+        layout = DrawerLayout.Framed,
+    ) {
         Div({ classes("panel__header") }) {
             H2({ classes("panel__title") }) { Text("Settings") }
-            Button({
-                classes("panel__close")
-                attr("aria-label", "Close")
-                onClick { onDismiss() }
-            }) {
+            IconButton(
+                ariaLabel = "Close",
+                onClick = onDismiss,
+                variant = ButtonVariant.Quiet,
+                size = ButtonSize.IconExtraSmall,
+            ) {
                 Icon(LucideIcon.X, size = ICON_SMALL)
             }
         }
@@ -111,13 +124,15 @@ fun SettingsPanel(
             }
 
             Div({ classes("panel__sign-out") }) {
-                Button({
-                    classes("panel__sign-out-button")
-                    onClick { onSignOut() }
-                }) {
-                    Icon(LucideIcon.LogOut, size = ICON_TINY)
-                    Text("Sign out")
-                }
+                // `QuietDestructive`: muted until reached for, then red. Which is
+                // exactly what this button already did by hand, and the variant
+                // exists because several buttons in this app did.
+                Button(
+                    label = "Sign out",
+                    onClick = onSignOut,
+                    variant = ButtonVariant.QuietDestructive,
+                    leading = { Icon(LucideIcon.LogOut, size = ICON_TINY) },
+                )
             }
         }
     }
@@ -191,8 +206,12 @@ private fun CityField(city: String?, onCommit: (String?) -> Unit) {
     key(city) {
         Div({ classes("panel__field") }) {
             Div({ classes("panel__field-row") }) {
+                // A raw `Input` rather than keel's `TextField`, which binds `value`
+                // to state. This one is deliberately uncontrolled - see the note
+                // above - so it is written once through `ref` and read back on Enter
+                // or blur. The class still comes from keel.
                 Input(InputType.Text) {
-                    classes("input")
+                    classNames(inputClasses(), "panel__field-input")
                     placeholder("e.g. Tokyo, London...")
                     attr("aria-label", "Weather city")
                     ref { element ->
@@ -213,14 +232,14 @@ private fun CityField(city: String?, onCommit: (String?) -> Unit) {
 
                 // Only worth offering when there is something to clear.
                 if (city != null) {
-                    Button({
-                        classes("panel__auto-button")
-                        attr("aria-label", "Detect my location")
-                        onClick { onCommit(null) }
-                    }) {
-                        Icon(LucideIcon.MapPin, size = ICON_TINY)
-                        Text("Auto")
-                    }
+                    Button(
+                        label = "Auto",
+                        onClick = { onCommit(null) },
+                        variant = ButtonVariant.Outline,
+                        size = ButtonSize.ExtraSmall,
+                        ariaLabel = "Detect my location",
+                        leading = { Icon(LucideIcon.MapPin, size = ICON_TINY) },
+                    )
                 }
             }
 
@@ -300,48 +319,43 @@ private fun AppearanceSection(theme: ThemeController, settings: SettingsControll
         Div({ classes("panel__label") }) { Text("Theme") }
 
         Div({ classes("panel__themes") }) {
-            ThemeId.entries.forEach { option ->
-                val on = option == theme.themeId
-
-                Button({
-                    classes(*listOfNotNull("theme", "theme--on".takeIf { on }).toTypedArray())
-                    attr("aria-pressed", on.toString())
-                    onClick {
+            theme.catalog.themes.forEach { option ->
+                SwatchTile(
+                    color = option.accentHex,
+                    label = option.label,
+                    selected = option == theme.theme,
+                    onSelect = {
                         // Written to both: the browser's copy paints instantly on the
                         // next load, before there is an account to ask, and the
                         // account's copy is what another device reads.
-                        theme.setThemeId(option)
-                        settings.update { it.copy(themeId = option) }
-                    }
-                }) {
-                    Span({
-                        classes("theme__dot")
-                        style { property("background-color", option.accentHex) }
-                    })
-                    Text(option.label)
-                }
+                        theme.setTheme(option)
+                        settings.update { it.copy(themeId = option.id) }
+                    },
+                )
             }
         }
 
         Div({ classes("panel__label") }) { Text("Mode") }
 
-        Div({ classes("panel__modes") }) {
-            ColorMode.entries.forEach { option ->
-                val on = option == theme.colorMode
-
-                Button({
-                    classes(*listOfNotNull("mode", "mode--on".takeIf { on }).toTypedArray())
-                    attr("aria-pressed", on.toString())
-                    onClick {
-                        theme.setColorMode(option)
-                        settings.update { it.copy(colorMode = option) }
-                    }
-                }) {
-                    Icon(option.icon, size = ICON_TINY)
-                    Text(option.label)
-                }
-            }
-        }
+        // keel's `SegmentedControl`, which is what this strip was: the same
+        // `--muted` track, the same `--card` fill on the chosen one. It is a real
+        // radio group, so the whole strip is now one tab stop and the arrow keys
+        // move between the three - neither of which a row of buttons gave.
+        //
+        // The sun, moon and monitor icons go. `Segment` carries a label and nothing
+        // else, and adding a slot for one call site is not worth it when the three
+        // words say the whole thing on their own. keel's own gallery draws its mode
+        // picker from labels alone for the same reason.
+        SegmentedControl(
+            segments = ColorMode.entries.map { Segment(it, it.label) },
+            selected = theme.colorMode,
+            onSelect = { option ->
+                theme.setColorMode(option)
+                settings.update { it.copy(colorMode = option) }
+            },
+            ariaLabel = "Mode",
+            fill = true,
+        )
     }
 }
 
@@ -357,7 +371,12 @@ private fun AppearanceSection(theme: ThemeController, settings: SettingsControll
 private fun NotificationsSection(notifications: NotificationController) {
     Section(LucideIcon.Bell, "Notifications") {
         when (notifications.permission) {
-            NotificationPermission.Granted -> Div({ classes("panel__enabled") }) {
+            // A `Callout` at `Primary`, which is keel's "something reached" tone,
+            // and a permission that has been granted is exactly that. Its ink is
+            // `--foreground` rather than `--primary`, which is keel's measured
+            // decision: `--primary` on its own tint clears 4.5:1 on none of the six
+            // light palettes.
+            NotificationPermission.Granted -> Callout(tone = CalloutTone.Primary) {
                 Icon(LucideIcon.Bell, size = ICON_TINY)
                 Text("Notifications enabled")
             }
@@ -368,13 +387,13 @@ private fun NotificationsSection(notifications: NotificationController) {
                 Text("Blocked by this browser. Allow notifications in its site settings.")
             }
 
-            NotificationPermission.Default -> Button({
-                classes("panel__enable-button")
-                onClick { notifications.enable() }
-            }) {
-                Icon(LucideIcon.BellOff, size = ICON_TINY)
-                Text("Enable notifications")
-            }
+            NotificationPermission.Default -> Button(
+                label = "Enable notifications",
+                onClick = { notifications.enable() },
+                variant = ButtonVariant.Outline,
+                attrs = { classNames("panel__wide-action") },
+                leading = { Icon(LucideIcon.BellOff, size = ICON_TINY) },
+            )
         }
     }
 }
@@ -435,44 +454,47 @@ private fun TagRow(
     onDelete: () -> Unit,
 ) {
     Div({ classes("panel__tag-row") }) {
-        Span({
-            classes("pill")
-            style {
-                property("background-color", tag.background(TagShade.Pill))
-                property("color", tag.color)
-            }
-        }) {
-            tag.emoji?.let { Span({ classes("pill__emoji") }) { Text(it) } }
-            Text(tag.name)
-        }
+        // keel's `Pill`, a span and not a button: this one only says which tag the
+        // row is about. The two controls beside it are what does anything.
+        Pill(label = tag.name, color = tag.color, emoji = tag.emoji)
 
-        if (confirming) {
-            Button({
-                classes("panel__tag-danger")
-                onClick { onDelete() }
-            }) {
-                Text("Delete")
-            }
-            Button({
-                classes("panel__tag-cancel")
-                onClick { onCancelDelete() }
-            }) {
-                Text("No")
-            }
-        } else {
-            Button({
-                classes("panel__tag-action")
-                attr("aria-label", "Edit tag ${tag.name}")
-                onClick { onEdit() }
-            }) {
-                Icon(LucideIcon.Pencil, size = ICON_TINY)
-            }
-            Button({
-                classes("panel__tag-action", "panel__tag-action--danger")
-                attr("aria-label", "Delete tag ${tag.name}")
-                onClick { onAskDelete() }
-            }) {
-                Icon(LucideIcon.Trash2, size = ICON_TINY)
+        // The controls in their own box, so the pill does not need `margin-right:
+        // auto` - which would have meant naming keel's `.pill` from this app's
+        // sheet to lay out this app's row.
+        Div({ classes("panel__tag-actions") }) {
+            if (confirming) {
+                Button(
+                    label = "Delete",
+                    onClick = onDelete,
+                    variant = ButtonVariant.Destructive,
+                    size = ButtonSize.ExtraSmall,
+                    ariaLabel = "Delete tag ${tag.name}",
+                )
+                Button(
+                    label = "No",
+                    onClick = onCancelDelete,
+                    variant = ButtonVariant.Quiet,
+                    size = ButtonSize.ExtraSmall,
+                )
+            } else {
+                IconButton(
+                    ariaLabel = "Edit tag ${tag.name}",
+                    onClick = onEdit,
+                    variant = ButtonVariant.Quiet,
+                    size = ButtonSize.IconExtraSmall,
+                    attrs = { classNames("panel__tag-action") },
+                ) {
+                    Icon(LucideIcon.Pencil, size = ICON_TINY)
+                }
+                IconButton(
+                    ariaLabel = "Delete tag ${tag.name}",
+                    onClick = onAskDelete,
+                    variant = ButtonVariant.QuietDestructive,
+                    size = ButtonSize.IconExtraSmall,
+                    attrs = { classNames("panel__tag-action") },
+                ) {
+                    Icon(LucideIcon.Trash2, size = ICON_TINY)
+                }
             }
         }
     }
@@ -490,63 +512,62 @@ private fun TagEditor(
 
     Div({ classes("creator") }) {
         Div({ classes("creator__row") }) {
-            Input(InputType.Text) {
-                classes("input", "creator__emoji")
-                value(emoji)
-                placeholder("😊")
-                maxLength(TAG_EMOJI_MAX_LENGTH)
-                attr("aria-label", "Tag emoji")
-                onInput { event -> emoji = event.value }
-            }
+            TextField(
+                value = emoji,
+                onValueChange = { emoji = it },
+                placeholder = "\uD83D\uDE0A",
+                ariaLabel = "Tag emoji",
+                attrs = {
+                    classNames("creator__emoji")
+                    maxLength(TAG_EMOJI_MAX_LENGTH)
+                },
+            )
 
-            Input(InputType.Text) {
-                classes("input")
-                value(name)
-                attr("aria-label", "Tag name")
-                onInput { event -> name = event.value }
-                onKeyDown { event ->
-                    when (event.key) {
-                        "Enter" -> if (name.isNotBlank()) {
-                            event.preventDefault()
-                            onSave(name, color, emoji)
+            TextField(
+                value = name,
+                onValueChange = { name = it },
+                ariaLabel = "Tag name",
+                attrs = {
+                    onKeyDown { event ->
+                        when (event.key) {
+                            "Enter" -> if (name.isNotBlank()) {
+                                event.preventDefault()
+                                onSave(name, color, emoji)
+                            }
+
+                            "Escape" -> onCancel()
                         }
-
-                        "Escape" -> onCancel()
                     }
-                }
-            }
+                },
+            )
         }
 
         Div({ classes("creator__colors") }) {
-            TAG_COLORS.forEach { swatch ->
-                Button({
-                    classes(
-                        *listOfNotNull("swatch", "swatch--on".takeIf { swatch == color })
-                            .toTypedArray(),
-                    )
-                    attr("aria-label", "Colour $swatch")
-                    attr("aria-pressed", (swatch == color).toString())
-                    style { property("background-color", swatch) }
-                    onClick { color = swatch }
-                })
+            Swatches.All.forEach { swatch ->
+                Swatch(
+                    color = swatch,
+                    ariaLabel = "Colour $swatch",
+                    selected = swatch == color,
+                    onSelect = { color = swatch },
+                    size = SwatchSize.Small,
+                )
             }
         }
 
         Div({ classes("creator__row") }) {
-            Button({
-                classes("editor__primary-button")
+            Button(
+                label = "Save",
+                onClick = { onSave(name, color, emoji) },
+                size = ButtonSize.ExtraSmall,
                 // A tag with no name is a pill nobody could tell from another.
-                if (name.isBlank()) attr("disabled", "")
-                onClick { onSave(name, color, emoji) }
-            }) {
-                Text("Save")
-            }
-            Button({
-                classes("editor__ghost-button")
-                onClick { onCancel() }
-            }) {
-                Text("Cancel")
-            }
+                enabled = name.isNotBlank(),
+            )
+            Button(
+                label = "Cancel",
+                onClick = onCancel,
+                variant = ButtonVariant.Quiet,
+                size = ButtonSize.ExtraSmall,
+            )
         }
     }
 }
@@ -599,10 +620,6 @@ private fun SliderRow(label: String, value: Int, range: SettingRange, onChange: 
     }
 }
 
-/** The picture for each colour mode, matching what the mode actually follows. */
-private val ColorMode.icon: LucideIcon
-    get() = when (this) {
-        ColorMode.Light -> LucideIcon.Sun
-        ColorMode.Dark -> LucideIcon.Moon
-        ColorMode.System -> LucideIcon.Monitor
-    }
+/* `ColorMode.icon` used to live here - a sun, a moon and a monitor for the three
+   modes. The mode picker is keel's `SegmentedControl` now, which draws a label and
+   nothing else, so there was nothing left to ask for the picture. */

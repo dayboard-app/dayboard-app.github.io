@@ -1,24 +1,29 @@
 package io.github.dayboard.ui
 
 import androidx.compose.runtime.Composable
+import io.github.bchmsl.keel.components.ButtonSize
+import io.github.bchmsl.keel.components.ButtonVariant
+import io.github.bchmsl.keel.components.Callout
+import io.github.bchmsl.keel.components.CalloutTone
+import io.github.bchmsl.keel.components.Surface
+import io.github.bchmsl.keel.components.TextField
+import io.github.bchmsl.keel.dom.buttonClasses
+import io.github.bchmsl.keel.dom.classNames
+import io.github.bchmsl.keel.icons.Icon
+import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.presentation.AuthMode
-import io.github.dayboard.ui.icons.Icon
-import io.github.dayboard.ui.icons.LucideIcon
 import org.jetbrains.compose.web.attributes.ButtonType
 import org.jetbrains.compose.web.attributes.InputType
 import org.jetbrains.compose.web.attributes.disabled
 import org.jetbrains.compose.web.attributes.minLength
 import org.jetbrains.compose.web.attributes.onSubmit
-import org.jetbrains.compose.web.attributes.placeholder
 import org.jetbrains.compose.web.attributes.required
 import org.jetbrains.compose.web.attributes.type
 import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Form
 import org.jetbrains.compose.web.dom.H1
-import org.jetbrains.compose.web.dom.Input
 import org.jetbrains.compose.web.dom.P
-import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
 
 /**
@@ -43,11 +48,12 @@ fun AuthScreen(
 ) {
     Div({ classes("auth") }) {
         Div({ classes("auth__brand") }) {
-            Icon(LucideIcon.Timer, size = 24)
+            Icon(LucideIcon.Timer, size = 24, className = "auth__brand-icon")
             Text("Dayboard")
         }
 
-        Div({ classes("auth__card") }) {
+        // `elevated`, which is the shadow this card had written out by hand.
+        Surface(elevated = true, attrs = { classNames("auth__card") }) {
             H1({ classes("auth__heading") }) { Text(mode.heading) }
             P({ classes("auth__subtext") }) { Text(mode.subtext) }
 
@@ -65,35 +71,66 @@ fun AuthScreen(
                 }
             }) {
                 Div({ classes("auth__field") }) {
-                    Icon(LucideIcon.Mail, size = 16)
-                    Input(InputType.Email) {
-                        classes("auth__input")
-                        placeholder("Email")
-                        required()
-                        value(email)
-                        onInput { onEmailChange(it.value) }
-                    }
+                    Icon(LucideIcon.Mail, size = 16, className = "auth__field-icon")
+                    TextField(
+                        value = email,
+                        onValueChange = onEmailChange,
+                        placeholder = "Email",
+                        type = InputType.Email,
+                        attrs = {
+                            classNames("auth__input")
+                            required()
+                        },
+                    )
                 }
 
                 Div({ classes("auth__field") }) {
-                    Icon(LucideIcon.Lock, size = 16)
-                    Input(InputType.Password) {
-                        classes("auth__input")
-                        placeholder("Password")
-                        required()
-                        // Firebase's own minimum, and the original's, so the browser
-                        // rejects a too-short password before a request is made.
-                        minLength(MIN_PASSWORD_LENGTH)
-                        value(password)
-                        onInput { onPasswordChange(it.value) }
-                    }
+                    Icon(LucideIcon.Lock, size = 16, className = "auth__field-icon")
+                    TextField(
+                        value = password,
+                        onValueChange = onPasswordChange,
+                        placeholder = "Password",
+                        type = InputType.Password,
+                        attrs = {
+                            classNames("auth__input")
+                            required()
+                            // Firebase's own minimum, and the original's, so the browser
+                            // rejects a too-short password before a request is made.
+                            minLength(MIN_PASSWORD_LENGTH)
+                        },
+                    )
                 }
 
-                error?.let { P({ classes("auth__error") }) { Text(it) } }
-                message?.let { P({ classes("auth__message") }) { Text(it) } }
+                // keel's `Callout`, which names this exact case: something that went
+                // wrong about the screen rather than about an action, and `announce`
+                // for "a failed sign-in" in as many words. Both were a coloured line
+                // of text, so both were silent - a screen reader reached them only if
+                // focus happened to pass, which after a rejected password it does not.
+                //
+                // The tone tints the box and leaves the ink at `--foreground`, which
+                // keel measured: `--destructive` ink on its own tint reaches 3.0:1 on
+                // the light palettes, under the 4.5:1 this size needs. The old rule
+                // was that failing pair, in all twelve themes.
+                error?.let {
+                    Callout(tone = CalloutTone.Destructive, announce = true) { Text(it) }
+                }
 
+                // `Success` and not `Primary`, because `--primary` is coral at hue 350
+                // and ember at 25, either side of the destructive red at 0 - so on two
+                // of the six palettes the confirmation would be the same red box as
+                // the failure above it. Only one of the two is ever on screen, so
+                // there is nothing beside it to tell them apart. This tone is the one
+                // keel added for it.
+                message?.let {
+                    Callout(tone = CalloutTone.Success, announce = true) { Text(it) }
+                }
+
+                // A raw button rather than keel's `Button`, because the content is a
+                // label with a trailing arrow that becomes a lone spinner mid-request,
+                // and the composable has a leading slot but no trailing one. The classes
+                // still come from keel, so a rename there fails to compile here.
                 Button({
-                    classes("auth__submit")
+                    classNames(buttonClasses())
                     type(ButtonType.Submit)
                     if (submitting) disabled()
                 }) {
@@ -110,8 +147,14 @@ fun AuthScreen(
 
             P({ classes("auth__toggle") }) {
                 Text(mode.togglePrompt)
+                // `Inline`, the one size that does not put a control's height into a
+                // sentence. Raw for consistency with the submit button above it, which
+                // has to be.
                 Button({
-                    classes("auth__toggle-action")
+                    classNames(
+                        "auth__toggle-action",
+                        buttonClasses(ButtonVariant.Link, ButtonSize.Inline),
+                    )
                     type(ButtonType.Button)
                     onClick { onToggleMode() }
                 }) {

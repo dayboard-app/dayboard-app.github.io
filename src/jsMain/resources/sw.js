@@ -17,8 +17,12 @@
 self.addEventListener('notificationclick', function (event) {
   event.notification.close();
 
-  // Where the notification came from, put there when it was shown.
-  var url = (event.notification.data && event.notification.data.url) || '/';
+  // Where the notification came from, put there when it was shown. The fallback is
+  // this worker's own scope - the directory it was registered from - rather than the
+  // host root, which would be a different copy of the app whenever this one is served
+  // under a path.
+  var url =
+    (event.notification.data && event.notification.data.url) || self.registration.scope;
 
   event.waitUntil(
     self.clients

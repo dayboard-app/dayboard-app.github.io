@@ -61,8 +61,13 @@ class FirebaseAuthRepository : AuthRepository {
 
         // The link returns to this deployment rather than a hardcoded address, so a
         // local build sends people back to localhost and the live one to Pages.
+        //
+        // Origin and path, not origin alone: a second copy of the app served under a
+        // directory is still the same origin, so the bare form would verify an account
+        // created here by sending its owner to a different build.
         failingWithCode {
-            sendEmailVerification(user, actionCodeSettings(window.location.origin)).await()
+            val here = window.location.origin + window.location.pathname
+            sendEmailVerification(user, actionCodeSettings(here)).await()
         }
 
         // Firebase signs a new account straight in. The app requires a confirmed

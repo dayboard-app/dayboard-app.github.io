@@ -98,7 +98,18 @@ class NotificationController(private val scope: CoroutineScope) {
                     notification.title,
                     timerNotificationOptions(
                         body = notification.body,
-                        url = window.location.origin,
+                        // Origin *and* path. The worker opens this URL when the
+                        // notification is clicked, and matches open tabs by prefix
+                        // against it - so the bare origin means any copy of the app
+                        // on this host answers for any other. Serving a second copy
+                        // under a path is enough to break it: a timer that ends in
+                        // one would focus the other, or open it fresh.
+                        //
+                        // The hash is deliberately left off. It is the current route,
+                        // and a notification arriving while the user is somewhere else
+                        // should not drag them back to wherever they were when the
+                        // timer started.
+                        url = window.location.origin + window.location.pathname,
                     ),
                 ).await()
             } catch (cancellation: CancellationException) {

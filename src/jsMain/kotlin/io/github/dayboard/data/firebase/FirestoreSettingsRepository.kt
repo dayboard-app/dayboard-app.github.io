@@ -6,10 +6,9 @@ import io.github.dayboard.data.firebase.externals.doc
 import io.github.dayboard.data.firebase.externals.onSnapshot
 import io.github.dayboard.data.firebase.externals.serverTimestamp
 import io.github.dayboard.data.firebase.externals.setDoc
-import io.github.dayboard.domain.model.ColorMode
+import io.github.bchmsl.keel.theme.ColorMode
 import io.github.dayboard.domain.model.DisplayMode
 import io.github.dayboard.domain.model.Settings
-import io.github.dayboard.domain.model.ThemeId
 import io.github.dayboard.domain.model.parseCardLayout
 import io.github.dayboard.domain.repository.SettingsRepository
 import kotlinx.coroutines.await
@@ -82,7 +81,7 @@ private fun readSettings(snapshot: DocumentSnapshot): Settings {
         autoStartFocus = boolField(data, "autoStartFocus", defaults.autoStartFocus),
         soundEnabled = boolField(data, "soundEnabled", defaults.soundEnabled),
         soundVolume = intField(data, "soundVolume", defaults.soundVolume),
-        themeId = ThemeId.fromId(stringField(data, "themeId")),
+        themeId = stringField(data, "themeId") ?: defaults.themeId,
         colorMode = ColorMode.fromId(stringField(data, "colorMode")),
         displayMode = DisplayMode.fromId(stringField(data, "displayMode")),
         showSeconds = boolField(data, "showSeconds", defaults.showSeconds),
@@ -107,7 +106,7 @@ private fun settingsDocument(settings: Settings): dynamic {
     document["autoStartFocus"] = settings.autoStartFocus
     document["soundEnabled"] = settings.soundEnabled
     document["soundVolume"] = settings.soundVolume
-    document["themeId"] = settings.themeId.id
+    document["themeId"] = settings.themeId
     document["colorMode"] = settings.colorMode.id
     document["displayMode"] = settings.displayMode.id
     document["showSeconds"] = settings.showSeconds

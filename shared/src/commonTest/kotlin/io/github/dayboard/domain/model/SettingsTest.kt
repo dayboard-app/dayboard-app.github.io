@@ -1,5 +1,7 @@
 package io.github.dayboard.domain.model
 
+import io.github.bchmsl.keel.theme.ColorMode
+import io.github.bchmsl.keel.theme.KeelThemes
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -21,7 +23,7 @@ class SettingsTest {
             assertFalse(autoStartFocus)
             assertTrue(soundEnabled)
             assertEquals(70, soundVolume)
-            assertEquals(ThemeId.Coral, themeId)
+            assertEquals(KeelThemes.Coral.id, themeId)
             assertEquals(ColorMode.System, colorMode)
             assertEquals(DisplayMode.Pomodoro, displayMode)
             assertFalse(showSeconds)

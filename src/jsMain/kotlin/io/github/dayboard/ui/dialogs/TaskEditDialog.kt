@@ -6,18 +6,26 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import io.github.bchmsl.keel.components.Button
+import io.github.bchmsl.keel.components.ButtonSize
+import io.github.bchmsl.keel.components.ButtonVariant
+import io.github.bchmsl.keel.components.CheckboxSize
+import io.github.bchmsl.keel.components.Dialog
+import io.github.bchmsl.keel.components.FormattingField
+import io.github.bchmsl.keel.components.IconButton
+import io.github.bchmsl.keel.components.TextField
+import io.github.bchmsl.keel.dom.checkboxClasses
+import io.github.bchmsl.keel.dom.classNames
+import io.github.bchmsl.keel.dom.inputClasses
+import io.github.bchmsl.keel.icons.Icon
+import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.data.ListDragController
 import io.github.dayboard.data.TasksController
 import io.github.dayboard.domain.model.Task
 import io.github.dayboard.ui.cards.DragHandleOrSpacer
 import io.github.dayboard.ui.cards.ICON_MICRO
 import io.github.dayboard.ui.cards.ICON_TINY
-import io.github.dayboard.ui.components.Dialog
-import io.github.dayboard.ui.icons.Icon
-import io.github.dayboard.ui.icons.LucideIcon
 import org.jetbrains.compose.web.attributes.InputType
-import org.jetbrains.compose.web.attributes.placeholder
-import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Input
 import org.jetbrains.compose.web.dom.Span
@@ -55,7 +63,7 @@ fun TaskEditDialog(
         Div({ classes("editor") }) {
             Div({ classes("editor__section") }) {
                 Div({ classes("editor__label") }) { Text("Title") }
-                FormattedField(
+                FormattingField(
                     resetKey = task.id,
                     initial = task.text,
                     ariaLabel = "Title",
@@ -65,7 +73,7 @@ fun TaskEditDialog(
 
             Div({ classes("editor__section") }) {
                 Div({ classes("editor__label") }) { Text("Notes") }
-                FormattedField(
+                FormattingField(
                     resetKey = task.id,
                     initial = task.body.orEmpty(),
                     ariaLabel = "Notes",
@@ -140,52 +148,57 @@ private fun SubtasksSection(task: Task, tasks: TasksController, drag: ListDragCo
 
         if (adding) {
             Div({ classes("editor__row") }) {
-                Input(InputType.Text) {
-                    classes("input")
-                    value(draft)
-                    placeholder("Subtask title...")
-                    attr("aria-label", "Subtask title")
-                    ref { element ->
-                        element.focus()
-                        onDispose { }
-                    }
-                    onInput { event -> draft = event.value }
-                    onKeyDown { event ->
-                        when (event.key) {
-                            "Enter" -> {
-                                event.preventDefault()
-                                tasks.addSubtask(task.id, draft)
-                                // The form stays open: adding subtasks is something
-                                // people do several of in a row.
-                                draft = ""
-                            }
+                TextField(
+                    value = draft,
+                    onValueChange = { draft = it },
+                    placeholder = "Subtask title...",
+                    ariaLabel = "Subtask title",
+                    attrs = {
+                        ref { element ->
+                            element.focus()
+                            onDispose { }
+                        }
+                        onKeyDown { event ->
+                            when (event.key) {
+                                "Enter" -> {
+                                    event.preventDefault()
+                                    tasks.addSubtask(task.id, draft)
+                                    // The form stays open: adding subtasks is something
+                                    // people do several of in a row.
+                                    draft = ""
+                                }
 
-                            "Escape" -> {
-                                adding = false
-                                draft = ""
+                                "Escape" -> {
+                                    // Stops propagation, or this would also reach the
+                                    // dialog's own Escape listener and close the whole
+                                    // dialog along with abandoning this one field.
+                                    event.stopPropagation()
+                                    adding = false
+                                    draft = ""
+                                }
                             }
                         }
-                    }
-                }
-                Button({
-                    classes("editor__primary-button")
-                    if (draft.isBlank()) attr("disabled", "")
-                    onClick {
+                    },
+                )
+                Button(
+                    label = "Add",
+                    onClick = {
                         tasks.addSubtask(task.id, draft)
                         draft = ""
-                    }
-                }) {
-                    Text("Add")
-                }
+                    },
+                    size = ButtonSize.ExtraSmall,
+                    enabled = draft.isNotBlank(),
+                )
             }
         } else {
-            Button({
-                classes("editor__ghost-button")
-                onClick { adding = true }
-            }) {
-                Icon(LucideIcon.Plus, size = ICON_TINY)
-                Text("Add subtask")
-            }
+            Button(
+                label = "Add subtask",
+                onClick = { adding = true },
+                variant = ButtonVariant.Quiet,
+                size = ButtonSize.ExtraSmall,
+                attrs = { classNames("editor__inline-action") },
+                leading = { Icon(LucideIcon.Plus, size = ICON_TINY) },
+            )
         }
     }
 }
@@ -211,25 +224,30 @@ private fun SubtaskRow(
     }) {
         DragHandleOrSpacer(onDragStart)
 
-        // A span rather than a button: whether a subtask is done is not editable
-        // here. It is shown so the list reads the same as everywhere else, and
-        // changed from the list or the view dialog.
+        // A span rather than keel's `Checkbox`: whether a subtask is done is not
+        // editable here. It is shown so the list reads the same as everywhere else,
+        // and changed from the list or the view dialog.
+        //
+        // keel's classes, and `aria-checked` because that is what its ticked look is
+        // keyed off - a box built by hand has to set it, which `checkboxClasses` says.
+        // On an `aria-hidden` element the attribute reaches nobody and is doing one
+        // job: telling the stylesheet this box is full. The alternative was keeping a
+        // `.checkbox--done` here, which would have shadowed keel's own rule.
         Span({
-            classes(
-                *listOfNotNull(
-                    "checkbox",
-                    "checkbox--small",
-                    "checkbox--done".takeIf { subtask.done },
-                ).toTypedArray(),
-            )
+            classNames(checkboxClasses(CheckboxSize.Small))
+            attr("aria-checked", subtask.done.toString())
             attr("aria-hidden", "true")
         }) {
             Icon(LucideIcon.Check, size = ICON_MICRO)
         }
 
         if (editing) {
+            // A raw `Input` rather than keel's `TextField`, which binds `value` to
+            // state. This field is deliberately uncontrolled: the row's text is
+            // written once through `ref` and read back on Enter or blur, so typing is
+            // never at the mercy of a recomposition. The class still comes from keel.
             Input(InputType.Text) {
-                classes("input", "subtask__input")
+                classNames(inputClasses(), "subtask__input")
                 attr("aria-label", "Subtask title")
                 ref { element ->
                     element.value = subtask.text
@@ -246,8 +264,12 @@ private fun SubtaskRow(
                         }
                         // Escape abandons the edit. It has to be checked before the
                         // blur handler runs, which is why cancelling clears the
-                        // editing state rather than committing.
-                        "Escape" -> onCancelEditing()
+                        // editing state rather than committing. Stopped here too, or
+                        // it would also close the dialog this row sits inside.
+                        "Escape" -> {
+                            event.stopPropagation()
+                            onCancelEditing()
+                        }
                     }
                 }
                 onBlur { event ->
@@ -267,11 +289,13 @@ private fun SubtaskRow(
             }
         }
 
-        Button({
-            classes("subtask__delete")
-            attr("aria-label", "Delete subtask")
-            onClick { onDelete() }
-        }) {
+        IconButton(
+            ariaLabel = "Delete subtask",
+            onClick = onDelete,
+            variant = ButtonVariant.QuietDestructive,
+            size = ButtonSize.IconExtraSmall,
+            attrs = { classNames("subtask__delete") },
+        ) {
             Icon(LucideIcon.X, size = ICON_TINY)
         }
     }
@@ -291,26 +315,28 @@ private fun DeleteSection(onDelete: () -> Unit) {
     Div({ classes("editor__delete") }) {
         if (confirming) {
             Span({ classes("editor__warning") }) { Text("Delete this task and all its subtasks?") }
-            Button({
-                classes("editor__danger-button")
-                onClick { onDelete() }
-            }) {
-                Text("Delete")
-            }
-            Button({
-                classes("editor__ghost-button")
-                onClick { confirming = false }
-            }) {
-                Text("Cancel")
-            }
+            Button(
+                label = "Delete",
+                onClick = onDelete,
+                variant = ButtonVariant.Destructive,
+                size = ButtonSize.ExtraSmall,
+            )
+            Button(
+                label = "Cancel",
+                onClick = { confirming = false },
+                variant = ButtonVariant.Quiet,
+                size = ButtonSize.ExtraSmall,
+            )
         } else {
-            Button({
-                classes("editor__ghost-button", "editor__ghost-button--danger")
-                onClick { confirming = true }
-            }) {
-                Icon(LucideIcon.Trash2, size = ICON_TINY)
-                Text("Delete task")
-            }
+            // `QuietDestructive`, not `Destructive`: this press only asks the
+            // question. The solid red belongs on the one above, which answers it.
+            Button(
+                label = "Delete task",
+                onClick = { confirming = true },
+                variant = ButtonVariant.QuietDestructive,
+                size = ButtonSize.ExtraSmall,
+                leading = { Icon(LucideIcon.Trash2, size = ICON_TINY) },
+            )
         }
     }
 }

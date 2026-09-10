@@ -160,46 +160,15 @@
 
 /* ----- mode tabs ----- */
 
-.timer__tabs {
-  display: flex;
-  gap: 0.25rem;
-  padding: 0.25rem;
-  border-radius: calc(var(--radius) - 2px);
-  background-color: hsl(var(--muted));
-}
+/* The strip is keel's `SegmentedControl`. It was the same idea drawn by hand: the same
+   `--muted` track, the same lift on the chosen one, at a radius and padding that were
+   never decisions. What is gained is a real radio group - one tab stop for the strip
+   and arrow keys between the three.
 
-.timer__tab {
-  border: none;
-  border-radius: calc(var(--radius) - 4px);
-  padding: 0.375rem 0.75rem;
-  background-color: transparent;
-  color: hsl(var(--muted-foreground));
-  font-family: inherit;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition:
-    background-color 150ms ease,
-    color 150ms ease;
-}
-
-.timer__tab:hover {
-  color: hsl(var(--foreground));
-}
-
-/* The active tab takes the colour of the mode it selects, so the card reads as
-   work or as rest without reading the label. */
-.timer__tab--active,
-.timer__tab--active:hover {
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-}
-
-.timer__tab--break,
-.timer__tab--break:hover {
-  background-color: hsl(var(--secondary));
-  color: hsl(var(--secondary-foreground));
-}
+   One thing is lost. The chosen tab used to take `--primary` or `--secondary` to say
+   which mode the card is in; keel draws one selected look for every segment. The ring's
+   arc and the play button both still turn on a break, and the mode's name is written
+   under the countdown, so the signal is still there twice over. */
 
 /* ----- ring ----- */
 
@@ -246,20 +215,10 @@
 }
 
 /* Breathing rather than blinking. It marks the timer as live without pulling the
-   eye back to it every second. */
+   eye back to it every second. keel's own `keel-pulse` keyframe, so there is one
+   definition of the effect rather than a private copy of it. */
 .timer__time--running {
-  animation: timer-pulse 2s ease-in-out infinite;
-}
-
-@keyframes timer-pulse {
-  0%,
-  100% {
-    opacity: 1;
-  }
-
-  50% {
-    opacity: 0.85;
-  }
+  animation: keel-pulse 2s ease-in-out infinite;
 }
 
 .timer__time--placeholder {
@@ -300,53 +259,20 @@
   gap: 0.75rem;
 }
 
-.timer__side-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border: none;
-  border-radius: 9999px;
-  background-color: transparent;
-  color: hsl(var(--muted-foreground));
-  cursor: pointer;
-  transition:
-    background-color 150ms ease,
-    color 150ms ease;
-}
+/* All three controls are keel's `IconButton` at `Circle` now.
 
-.timer__side-button:hover {
-  background-color: hsl(var(--muted));
-  color: hsl(var(--foreground));
-}
+   The two side buttons are `Quiet` at `Icon`, which was this rule to the value: the
+   same 2.5rem circle, the same muted ink, the same `--muted` fill and full-strength
+   ink under the pointer.
 
-.timer__play {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 3.5rem;
-  height: 3.5rem;
-  border: none;
-  border-radius: 9999px;
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  cursor: pointer;
-  transition: transform 150ms ease;
-}
+   The play button is `IconLarge`, and it is the reason that tier and `Circle` exist in
+   keel at all - a 3.5rem circle was outside a scale that stopped at 2.75rem with a
+   10px corner, and the other app had written the same control by hand at its own size.
+   `Default` and `Secondary` are what `--primary` and `--break` were.
 
-.timer__play--break {
-  background-color: hsl(var(--secondary));
-  color: hsl(var(--secondary-foreground));
-}
-
-.timer__play:hover {
-  transform: scale(1.05);
-}
-
-.timer__play:active {
-  transform: scale(0.95);
-}
+   Its hover changes: keel dims the fill to 90% where this grew the button 5%. The
+   growth is the nicer of the two, but it is not worth a consumer rule that reaches
+   into keel's own button to restate it. */
 
 /* A triangle sits visually left of centre inside a circle. The square pause glyph
    does not, which is why only one of them is nudged. */
@@ -358,12 +284,20 @@
 
 /* Holds the space the dots and the controls will take, so the card does not change
    height - and shove everything below it - the moment the timer arrives. */
+/* A measured literal, not a calc: keel's segmented strip has no height of its own -
+   it is two paddings, a border and a line box - so there is no token to read. 2rem is
+   what it comes out at, checked against the real strip. */
+.timer__tabs-placeholder {
+  height: 2rem;
+}
+
 .timer__dots-placeholder {
   height: 0.625rem;
 }
 
+/* This one does have a token, now that the play button asks keel for its size. */
 .timer__controls-placeholder {
-  height: 3.5rem;
+  height: var(--control-h-transport);
 }
 
 /* ----- expanded ----- */
@@ -394,15 +328,9 @@
   gap: 1.25rem;
 }
 
-.timer--expanded .timer__side-button {
-  width: 3.5rem;
-  height: 3.5rem;
-}
-
-.timer--expanded .timer__play {
-  width: 5rem;
-  height: 5rem;
-}
+/* The two rules that used to grow the controls here are gone. Expanded, the side
+   buttons ask keel for `Transport` and the play button for `TransportLarge` - the same
+   3.5rem and 5rem, chosen at the call site instead of reached into from this sheet. */
 
 @media (min-width: 1024px) {
   .timer--expanded .timer__ring {
@@ -436,49 +364,16 @@
   gap: 0.5rem;
 }
 
-.tasks__add-input {
+/* The field is keel's `TextField` and the button is keel's `IconButton` at `Icon`.
+   Both rules were keel's own values written out - the same border, the same 12px
+   radius, the same `--card` fill, the same 2.5rem square, the same `--primary`.
+
+   All that is left is the one thing keel does not decide: which of the two stretches.
+   keel's field is `width: 100%`, correctly, because sharing a row is the row's
+   business and not the field's. */
+.tasks__add-row-field {
   flex: 1;
   min-width: 0;
-  border: 1px solid hsl(var(--border));
-  border-radius: 0.75rem;
-  padding: 0.625rem 1rem;
-  background-color: hsl(var(--card));
-  color: hsl(var(--foreground));
-  font-family: inherit;
-  font-size: 0.875rem;
-}
-
-.tasks__add-input:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px hsl(var(--ring) / 0.2);
-}
-
-.tasks__add-button {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
-  border: none;
-  border-radius: 0.75rem;
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  cursor: pointer;
-  transition: transform 150ms ease;
-}
-
-.tasks__add-button:hover:not(:disabled) {
-  transform: scale(1.05);
-}
-
-.tasks__add-button:active:not(:disabled) {
-  transform: scale(0.95);
-}
-
-.tasks__add-button:disabled {
-  opacity: 0.4;
-  cursor: default;
 }
 
 /* ----- tag filter ----- */
@@ -494,45 +389,24 @@
   color: hsl(var(--muted-foreground) / 0.4);
 }
 
-.chip {
-  border: none;
-  border-radius: 9999px;
-  padding: 0.125rem 0.625rem;
-  background-color: transparent;
-  font-family: inherit;
-  font-size: 0.625rem;
-  font-weight: 500;
-  cursor: pointer;
-  opacity: 0.6;
-  transition: opacity 150ms ease;
-}
+/* The filter chips were `.chip` here and `.pill` in keel: the same shape, the same
+   type size, the same 0.6 dim when off and the same 1px ring when on, under two names.
+   They are keel's `PillButton` now, which is also what makes the row a real toggle set
+   - each chip carries an `aria-label` saying what pressing it filters, where the class
+   version left a screen reader with a tag name and an `aria-pressed`.
 
-.chip--on {
-  opacity: 1;
-  box-shadow: 0 0 0 1px hsl(var(--background)), 0 0 0 2px currentColor;
-}
-
-.chip:hover {
-  opacity: 1;
-}
-
-/* The "All" chip has no tag colour of its own, so it borrows the text colour. */
-.chip--all {
-  color: hsl(var(--muted-foreground) / 0.6);
-}
-
-.chip--all.chip--on {
-  background-color: hsl(var(--foreground) / 0.1);
-  color: hsl(var(--foreground));
-  box-shadow: none;
-}
-
-.chip__emoji {
-  margin-right: 0.125rem;
-}
+   Two small things changed with it. The "All" chip keeps keel's faint fill even while
+   off, where this made it bare text, so it now reads as one of the pills rather than as
+   a label in front of them. And a selected "All" takes the same ring as every other
+   selected chip; `.chip--all.chip--on` used to switch the ring off. */
 
 /* ----- notices ----- */
 
+/* The one notice left: a wait. "Nothing here" is keel's `EmptyState` now, which both
+   empty cases use - but a list still loading is not empty, and keel's own docs say so:
+   showing "No tasks yet" during a fetch tells the user something false. So this stays
+   as a centred row holding keel's `Spinner` and a line of text, which is layout and
+   not a component. */
 .tasks__notice {
   display: flex;
   align-items: center;
@@ -611,48 +485,21 @@
   cursor: grabbing;
 }
 
-.checkbox {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 1.25rem;
-  height: 1.25rem;
-  border: 2px solid hsl(var(--muted-foreground) / 0.3);
-  border-radius: 0.375rem;
-  background-color: transparent;
-  /* Transparent rather than absent, so the tick can preview on hover without the
-     row reflowing. */
-  color: transparent;
-  cursor: pointer;
-  transition:
-    border-color 150ms ease,
-    background-color 150ms ease,
-    color 150ms ease,
-    transform 150ms ease;
-}
+/* The tick box used to be written out here, at both sizes. It is keel's `.checkbox`
+   now, which is the same box down to the last value - the same 1.25rem and 1rem, the
+   same 2px border at 30% of the muted ink, the same radii, the same tick hidden by
+   colour rather than by presence, and the same hover growth that the small size gives
+   up. keel's was built from this one.
 
-.checkbox--small {
-  width: 1rem;
-  height: 1rem;
-  border-radius: 0.25rem;
-}
+   Leaving it here was not an option even as duplication: this sheet loads after
+   keel's, so a `.checkbox` in it shadowed keel's rule outright. Every Dayboard box was
+   silently using this copy and none of keel's improvements - it has a focus ring and a
+   disabled state, and its hover sits inside `@media (hover: hover)` so it does not
+   stick on touch.
 
-.checkbox--done {
-  border-color: hsl(var(--primary));
-  background-color: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-}
-
-button.checkbox:hover:not(.checkbox--done) {
-  border-color: hsl(var(--primary));
-  color: hsl(var(--primary));
-  transform: scale(1.1);
-}
-
-button.checkbox--small:hover:not(.checkbox--done) {
-  transform: none;
-}
+   The one difference is which attribute means "ticked". keel reads `aria-checked`
+   where this read a `--done` class beside it, so the state the eye sees and the state
+   a screen reader hears can no longer disagree. */
 
 .task__chevron {
   display: inline-flex;
@@ -697,39 +544,24 @@ button.checkbox--small:hover:not(.checkbox--done) {
   text-decoration: line-through;
 }
 
-.task__progress {
-  border-radius: 9999px;
-  padding: 0.125rem 0.375rem;
-  background-color: hsl(var(--muted));
-  color: hsl(var(--muted-foreground));
-  font-size: 0.625rem;
-  font-weight: 500;
-}
+/* The "2/5" count was written out here and is keel's `Badge` at `Neutral` now - the
+   same `--muted` fill, the same muted ink, the same padding and type size. */
 
+/* The edit button is keel's `IconButton` at `Quiet` and `IconExtraSmall`, which is the
+   same 1.75rem box this rule drew. What is left is the part keel cannot know: at rest
+   this control is not dim, it is *absent*, and only its row being hovered brings it
+   out. Quiet is about how loud a control is; this is about whether it is there at all.
+
+   `:not(:hover)` matters, for the reason the settings panel's tag actions give: this
+   sheet loads after keel's and both rules set `color` at the same specificity, so
+   without the exclusion the reveal colour would beat keel's own hover on the one hover
+   that should show it. */
 .task__edit {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: 1.75rem;
-  height: 1.75rem;
-  border: none;
-  border-radius: 0.375rem;
-  background-color: transparent;
   color: transparent;
-  cursor: pointer;
-  transition:
-    color 150ms ease,
-    background-color 150ms ease;
 }
 
-.task:hover .task__edit {
+.task:hover .task__edit:not(:hover) {
   color: hsl(var(--muted-foreground));
-}
-
-.task__edit:hover {
-  background-color: hsl(var(--primary) / 0.05);
-  color: hsl(var(--primary));
 }
 
 /* ----- expanded row ----- */

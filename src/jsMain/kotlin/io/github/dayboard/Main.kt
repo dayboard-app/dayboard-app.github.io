@@ -1,5 +1,7 @@
 package io.github.dayboard
 
+import io.github.bchmsl.keel.theme.KeelThemes
+import io.github.bchmsl.keel.theme.ThemeController
 import io.github.dayboard.data.AuthController
 import io.github.dayboard.data.ClockController
 import io.github.dayboard.data.DragController
@@ -10,18 +12,17 @@ import io.github.dayboard.data.Router
 import io.github.dayboard.data.SettingsController
 import io.github.dayboard.data.TagsController
 import io.github.dayboard.data.TasksController
-import io.github.dayboard.data.ThemeController
 import io.github.dayboard.data.TimerController
 import io.github.dayboard.data.WeatherController
-import io.github.dayboard.data.firebase.FirebaseAuthRepository
 import io.github.dayboard.data.audio.WebAudioChime
-import io.github.dayboard.data.firebase.FirestoreSettingsRepository
+import io.github.dayboard.data.firebase.FirebaseAuthRepository
 import io.github.dayboard.data.firebase.FirestoreNoteRepository
+import io.github.dayboard.data.firebase.FirestoreSettingsRepository
 import io.github.dayboard.data.firebase.FirestoreTagRepository
 import io.github.dayboard.data.firebase.FirestoreTaskRepository
 import io.github.dayboard.data.firebase.FirestoreTimerRepository
-import io.github.dayboard.domain.model.timerEndNotification
 import io.github.dayboard.data.weather.OpenMeteoWeatherRepository
+import io.github.dayboard.domain.model.timerEndNotification
 import io.github.dayboard.ui.App
 import kotlinx.coroutines.MainScope
 import org.jetbrains.compose.web.renderComposable
@@ -42,7 +43,7 @@ fun main() {
     // must still finish.
     val scope = MainScope()
 
-    val theme = ThemeController()
+    val theme = ThemeController(catalog = KeelThemes.Standard)
     val router = Router()
     val auth = AuthController(repository = FirebaseAuthRepository(), scope = scope)
     val settings = SettingsController(repository = FirestoreSettingsRepository(), scope = scope)

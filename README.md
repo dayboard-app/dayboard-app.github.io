@@ -31,6 +31,10 @@ behaviour and its look. What the original does is written down in
 Needs a JDK. **21 or newer** if you want the Firebase emulators, which refuse to
 start on anything older.
 
+The design system lives in [`keel`](keel/), a separate repository brought in as a
+git submodule, so clone with `--recurse-submodules` - or, after an ordinary clone,
+`git submodule update --init`.
+
 ```bash
 ./gradlew jsBrowserDistribution
 ```
@@ -89,9 +93,10 @@ instrument Kotlin/JS.
 |---|---|
 | `shared/` | The domain, the rules, and the pure logic. No Firebase, no DOM, no clock. |
 | `src/jsMain/` | The web app: Compose HTML, the browser and Firebase adapters, the composition root. |
+| `keel/` | The design system - tokens, primitives, icons, the theme model, the formatting parser. A submodule, shared with [Dakalebi](https://github.com/dakalebi/dakalebi.github.io). |
 | `firebase/` | Security rules, and a record of how the project is configured. |
 | `docs/source-analysis/` | What the original does, extracted file by file. The reference while building. |
-| `tools/` | Generators for the icon set and the lucide catalogue. |
+| `tools/` | The app's own icon and favicon generator. |
 
 Deploys happen on every push to `main`, via
 [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml). A failing test

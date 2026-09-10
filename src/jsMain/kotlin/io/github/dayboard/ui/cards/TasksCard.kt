@@ -6,27 +6,36 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import io.github.bchmsl.keel.color.SwatchShade
+import io.github.bchmsl.keel.components.Badge
+import io.github.bchmsl.keel.components.ButtonSize
+import io.github.bchmsl.keel.components.ButtonVariant
+import io.github.bchmsl.keel.components.Checkbox
+import io.github.bchmsl.keel.components.CheckboxSize
+import io.github.bchmsl.keel.components.EmptyState
+import io.github.bchmsl.keel.components.FormattedText
+import io.github.bchmsl.keel.components.IconButton
+import io.github.bchmsl.keel.components.Pill
+import io.github.bchmsl.keel.components.PillButton
+import io.github.bchmsl.keel.components.PillSize
+import io.github.bchmsl.keel.components.Spinner
+import io.github.bchmsl.keel.components.TextField
+import io.github.bchmsl.keel.dom.classNames
+import io.github.bchmsl.keel.icons.Icon
+import io.github.bchmsl.keel.icons.LucideIcon
 import io.github.dayboard.data.ListDragController
 import io.github.dayboard.data.TasksController
 import io.github.dayboard.domain.model.Tag
-import io.github.dayboard.domain.model.TagShade
 import io.github.dayboard.domain.model.Task
-import io.github.dayboard.domain.model.background
 import io.github.dayboard.domain.model.hasDetail
 import io.github.dayboard.domain.model.subtaskProgress
-import io.github.dayboard.ui.components.FormattedText
-import io.github.dayboard.ui.icons.Icon
-import io.github.dayboard.ui.icons.LucideIcon
-import org.jetbrains.compose.web.attributes.InputType
-import org.jetbrains.compose.web.attributes.placeholder
+import org.jetbrains.compose.web.attributes.onSubmit as onSubmitAttribute
 import org.jetbrains.compose.web.dom.Button
 import org.jetbrains.compose.web.dom.Div
 import org.jetbrains.compose.web.dom.Form
-import org.jetbrains.compose.web.dom.Input
 import org.jetbrains.compose.web.dom.P
 import org.jetbrains.compose.web.dom.Span
 import org.jetbrains.compose.web.dom.Text
-import org.jetbrains.compose.web.attributes.onSubmit as onSubmitAttribute
 
 /**
  * The task list: an add box, a tag filter, the unfinished tasks, and the finished
@@ -91,64 +100,101 @@ private fun AddTaskForm(draft: String, onDraftChange: (String) -> Unit, onSubmit
             onSubmit()
         }
     }) {
-        Input(InputType.Text) {
-            classes("tasks__add-input")
-            value(draft)
-            placeholder("Add a new task...")
-            attr("aria-label", "Add a new task")
-            onInput { event -> onDraftChange(event.value) }
-        }
+        AddRowField(
+            draft = draft,
+            onDraftChange = onDraftChange,
+            placeholder = "Add a new task...",
+            ariaLabel = "Add a new task",
+        )
 
-        Button({
-            classes("tasks__add-button")
-            attr("type", "submit")
-            attr("aria-label", "Add task")
-            // Nothing to add is not an error worth explaining, so the button simply
-            // is not available until there is something to add.
-            if (draft.isBlank()) attr("disabled", "")
-        }) {
-            Icon(LucideIcon.Plus, size = ICON_SMALL)
-        }
+        AddRowButton(enabled = draft.isNotBlank(), ariaLabel = "Add task")
     }
 }
 
+/**
+ * The text field in an add row.
+ *
+ * keel's `TextField` is the whole of it now. What was here was the field's border,
+ * radius, padding, fill and focus glow written out, at values that were keel's to
+ * within the horizontal padding and the thickness of the glow.
+ *
+ * Shared with the notes card, which had the same two controls a second time.
+ */
 @Composable
-private fun TagFilterRow(tags: List<Tag>, selectedId: String?, onSelect: (String?) -> Unit) {
+internal fun AddRowField(
+    draft: String,
+    onDraftChange: (String) -> Unit,
+    placeholder: String,
+    ariaLabel: String,
+) {
+    TextField(
+        value = draft,
+        onValueChange = onDraftChange,
+        placeholder = placeholder,
+        ariaLabel = ariaLabel,
+        // keel's field is `width: 100%`, correctly - sharing a flex row is the row's
+        // decision, so the class that makes it share one belongs to this app.
+        attrs = { classNames("tasks__add-row-field") },
+    )
+}
+
+/** The submit button in an add row. */
+@Composable
+internal fun AddRowButton(enabled: Boolean, ariaLabel: String) {
+    IconButton(
+        ariaLabel = ariaLabel,
+        // The form's own submit handler does the work; this only has to *be* a submit
+        // button, which is what makes Enter in the field add the row.
+        onClick = {},
+        size = ButtonSize.Icon,
+        // Nothing to add is not an error worth explaining, so the button simply is
+        // not available until there is something to add.
+        enabled = enabled,
+        attrs = { attr("type", "submit") },
+    ) {
+        Icon(LucideIcon.Plus, size = ICON_SMALL)
+    }
+}
+
+/**
+ * The tag filter: an "All" chip, then one per tag.
+ *
+ * Shared with the notes card, which filters by the same tag vocabulary and had this
+ * row written out a second time. keel's `PillButton` made the two bodies identical,
+ * so keeping both would have been a copy of a copy.
+ */
+@Composable
+internal fun TagFilterRow(tags: List<Tag>, selectedId: String?, onSelect: (String?) -> Unit) {
     Div({ classes("tasks__filters") }) {
         Icon(LucideIcon.Filter, size = ICON_TINY, className = "tasks__filter-icon")
 
-        Button({
-            classes(
-                *listOfNotNull("chip", "chip--all", "chip--on".takeIf { selectedId == null })
-                    .toTypedArray(),
-            )
-            attr("aria-pressed", (selectedId == null).toString())
-            onClick { onSelect(null) }
-        }) {
-            Text("All")
-        }
+        // A null colour is keel's pill for no particular tag, and it takes the theme's
+        // own ink. Passing a neutral hex instead could not work: it would stay the one
+        // colour across all twelve palettes.
+        PillButton(
+            label = "All",
+            color = null,
+            ariaLabel = "Show all",
+            onClick = { onSelect(null) },
+            selected = selectedId == null,
+        )
 
         tags.forEach { tag ->
             val on = tag.id == selectedId
 
-            Button({
-                classes(*listOfNotNull("chip", "chip--on".takeIf { on }).toTypedArray())
-                attr("aria-pressed", on.toString())
-                style {
-                    // The one colour in the app that is not a theme token: it is the
-                    // user's own choice and has to survive exactly as stored, which
-                    // is why it goes in as a plain string.
-                    property(
-                        "background-color",
-                        tag.background(if (on) TagShade.Selected else TagShade.Faint),
-                    )
-                    property("color", tag.color)
-                }
-                onClick { onSelect(tag.id) }
-            }) {
-                tag.emoji?.let { Span({ classes("chip__emoji") }) { Text(it) } }
-                Text(tag.name)
-            }
+            PillButton(
+                label = tag.name,
+                color = tag.color,
+                ariaLabel = "Filter by ${tag.name}",
+                onClick = { onSelect(tag.id) },
+                // Two shades rather than one, which `SwatchShade` names for exactly
+                // this: the fill carries part of the on/off signal, and the rest is
+                // keel's dim and ring. A tag's colour is the user's own and goes in
+                // as stored, which is why it is inline and not a token.
+                shade = if (on) SwatchShade.Selected else SwatchShade.Faint,
+                emoji = tag.emoji,
+                selected = on,
+            )
         }
     }
 }
@@ -156,21 +202,21 @@ private fun TagFilterRow(tags: List<Tag>, selectedId: String?, onSelect: (String
 @Composable
 private fun LoadingTasks() {
     Div({ classes("tasks__notice") }) {
-        Icon(LucideIcon.LoaderCircle, size = ICON_MEDIUM, className = "spinner")
+        // keel's `Spinner`, a ring at the same 1.25rem the rotated glyph was. Turning
+        // an icon in place is what keel's `.spinner` utility is for; this is the other
+        // thing, a wait with no measurable end. It carries `role="status"`, so the
+        // wait is announced rather than only drawn.
+        Spinner()
         Span { Text("Loading tasks...") }
     }
 }
 
 @Composable
 private fun EmptyTasks(filterTagId: String?) {
-    Div({ classes("tasks__notice") }) {
-        Text(
-            if (filterTagId != null) {
-                "No tasks with this tag."
-            } else {
-                "No tasks yet — type above to get started."
-            },
-        )
+    if (filterTagId != null) {
+        EmptyState(title = "No tasks with this tag")
+    } else {
+        EmptyState(title = "No tasks yet", body = "Type above to get started.")
     }
 }
 
@@ -277,10 +323,10 @@ private fun TaskRow(
         Div({ classes("task__row") }) {
             DragHandleOrSpacer(onDragStart)
 
-            TaskCheckbox(
-                done = task.done,
-                label = if (task.done) "Mark as not done" else "Mark as done",
-                onToggle = { tasks.toggleDone(task.id) },
+            Checkbox(
+                checked = task.done,
+                onCheckedChange = { tasks.toggleDone(task.id) },
+                ariaLabel = if (task.done) "Mark as not done" else "Mark as done",
             )
 
             if (hasDetail) {
@@ -305,7 +351,7 @@ private fun TaskRow(
             }) {
                 FormattedText(
                     text = task.text,
-                    classNames = listOfNotNull(
+                    extraClasses = listOfNotNull(
                         "task__text",
                         "task__text--done".takeIf { task.done },
                     ),
@@ -315,31 +361,26 @@ private fun TaskRow(
                 // around them, and both at once would be the same information twice.
                 if (!open) {
                     tags.forEach { tag ->
-                        Span({
-                            classes("pill", "pill--inline")
-                            style {
-                                property("background-color", tag.background(TagShade.Inline))
-                                property("color", tag.color)
-                            }
-                        }) {
-                            tag.emoji?.let { Span({ classes("pill__emoji") }) { Text(it) } }
-                            Text(tag.name)
-                        }
+                        Pill(
+                            label = tag.name,
+                            color = tag.color,
+                            shade = SwatchShade.Inline,
+                            emoji = tag.emoji,
+                            size = PillSize.Inline,
+                        )
                     }
 
                     if (subtasks.isNotEmpty()) {
-                        Span({ classes("task__progress") }) { Text(subtaskProgress(subtasks)) }
+                        // keel's `Badge` at `Neutral`, which its own docs call "a
+                        // fact with no judgement attached: a count". The same fill,
+                        // ink, padding and type size as the local rule; what changes
+                        // is a squarer corner and a bolder, letterspaced figure.
+                        Badge(label = subtaskProgress(subtasks))
                     }
                 }
             }
 
-            Button({
-                classes("task__edit")
-                attr("aria-label", "Edit")
-                onClick { onEditTask(task.id) }
-            }) {
-                Icon(LucideIcon.Pencil, size = ICON_TINY)
-            }
+            EditRowButton(ariaLabel = "Edit task", onClick = { onEditTask(task.id) })
         }
 
         if (open) {
@@ -360,16 +401,7 @@ private fun TaskDetail(task: Task, tags: List<Tag>, subtasks: List<Task>, tasks:
         if (tags.isNotEmpty()) {
             Div({ classes("task__tags") }) {
                 tags.forEach { tag ->
-                    Span({
-                        classes("pill")
-                        style {
-                            property("background-color", tag.background(TagShade.Pill))
-                            property("color", tag.color)
-                        }
-                    }) {
-                        tag.emoji?.let { Span({ classes("pill__emoji") }) { Text(it) } }
-                        Text(tag.name)
-                    }
+                    Pill(label = tag.name, color = tag.color, emoji = tag.emoji)
                 }
             }
         }
@@ -383,15 +415,19 @@ private fun TaskDetail(task: Task, tags: List<Tag>, subtasks: List<Task>, tasks:
                 subtasks.forEach { subtask ->
                     key(subtask.id) {
                         Div({ classes("subtask") }) {
-                            TaskCheckbox(
-                                done = subtask.done,
-                                label = if (subtask.done) "Mark as not done" else "Mark as done",
-                                onToggle = { tasks.toggleDone(subtask.id) },
-                                small = true,
+                            Checkbox(
+                                checked = subtask.done,
+                                onCheckedChange = { tasks.toggleDone(subtask.id) },
+                                ariaLabel = if (subtask.done) {
+                                    "Mark as not done"
+                                } else {
+                                    "Mark as done"
+                                },
+                                size = CheckboxSize.Small,
                             )
                             FormattedText(
                                 text = subtask.text,
-                                classNames = listOfNotNull(
+                                extraClasses = listOfNotNull(
                                     "subtask__text",
                                     "subtask__text--done".takeIf { subtask.done },
                                 ),
@@ -404,27 +440,33 @@ private fun TaskDetail(task: Task, tags: List<Tag>, subtasks: List<Task>, tasks:
     }
 }
 
+/* `TaskCheckbox` used to live here: a button carrying `role="checkbox"`, a tick hidden
+   by colour, and a `--small` size for a subtask row. That is keel's `Checkbox`, down to
+   the two tick sizes - it was the thing keel's was built from. The one difference is
+   which attribute marks a ticked box: keel reads `aria-checked`, where this read a
+   `--done` class beside it, so the state the eye sees and the state a screen reader
+   hears can no longer drift apart. */
+
+/**
+ * A row's edit button: absent until the row is hovered.
+ *
+ * keel's `IconButton` at `IconExtraSmall`, which is the same 1.75rem box the local
+ * rule drew - `--control-h-xs` has been that size since keel's own card headers were
+ * written. `Quiet` is the variant for a control that is muted until reached for.
+ *
+ * The one thing left in `cards.css` is the part keel cannot know: at rest this button
+ * is not dim, it is *invisible*, and only its row being hovered brings it out.
+ */
 @Composable
-internal fun TaskCheckbox(
-    done: Boolean,
-    label: String,
-    onToggle: () -> Unit,
-    small: Boolean = false,
-) {
-    Button({
-        classes(
-            *listOfNotNull(
-                "checkbox",
-                "checkbox--done".takeIf { done },
-                "checkbox--small".takeIf { small },
-            ).toTypedArray(),
-        )
-        attr("role", "checkbox")
-        attr("aria-checked", done.toString())
-        attr("aria-label", label)
-        onClick { onToggle() }
-    }) {
-        Icon(LucideIcon.Check, size = if (small) ICON_MICRO else ICON_TINY)
+internal fun EditRowButton(ariaLabel: String, onClick: () -> Unit) {
+    IconButton(
+        ariaLabel = ariaLabel,
+        onClick = onClick,
+        variant = ButtonVariant.Quiet,
+        size = ButtonSize.IconExtraSmall,
+        attrs = { classNames("task__edit") },
+    ) {
+        Icon(LucideIcon.Pencil, size = ICON_TINY)
     }
 }
 
@@ -464,4 +506,3 @@ internal fun DragHandleOrSpacer(onDragStart: (() -> Unit)?) {
 internal const val ICON_MICRO = 10
 internal const val ICON_TINY = 12
 internal const val ICON_SMALL = 16
-internal const val ICON_MEDIUM = 20
