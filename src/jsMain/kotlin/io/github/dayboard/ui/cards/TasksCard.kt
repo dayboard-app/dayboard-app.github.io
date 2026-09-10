@@ -349,12 +349,16 @@ private fun TaskRow(
                 classes("task__title")
                 onClick { onViewTask(task.id) }
             }) {
+                // This row opens the task. A code span in the title keeps the plain
+                // rendering, because copying it is not what a click here means; the
+                // body below and the viewer are where one copies.
                 FormattedText(
                     text = task.text,
                     extraClasses = listOfNotNull(
                         "task__text",
                         "task__text--done".takeIf { task.done },
                     ),
+                    copyableCode = false,
                 )
 
                 // Only while collapsed: expanding shows the same things with room
