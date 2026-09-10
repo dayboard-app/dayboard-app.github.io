@@ -188,7 +188,13 @@ private fun NoteRow(
                 classes("task__title")
                 onClick { onViewNote(note.id) }
             }) {
-                FormattedText(text = note.title, extraClasses = listOf("task__text"))
+                // This row opens the note. A code span in the title keeps the plain
+                // rendering, because copying it is not what a click here means.
+                FormattedText(
+                    text = note.title,
+                    extraClasses = listOf("task__text"),
+                    copyableCode = false,
+                )
 
                 // Only while collapsed: expanding shows the same tags with room
                 // around them, and both at once would be the same thing twice.
@@ -233,7 +239,9 @@ private fun NoteDetail(note: Note, tags: List<Tag>, onViewNote: () -> Unit) {
                 attr("title", "Click to view full note")
                 onClick { onViewNote() }
             }) {
-                FormattedText(body)
+                // The preview is a click target of its own, as the title above says.
+                // The full note in the viewer is where a code span copies.
+                FormattedText(body, copyableCode = false)
             }
         }
     }
