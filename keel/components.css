@@ -932,6 +932,41 @@ button.card__title {
   font-size: 0.85em;
 }
 
+/* A code span that copies itself when clicked. Only this variant says it is
+   pressable, because only this variant is: the same span inside a row that opens on
+   click is drawn by the plain rule above. `FormattedText` carries the reasoning. */
+.formatted__code--copyable {
+  cursor: pointer;
+}
+
+/* The element is a `code` rather than a button, so it does not inherit the button's
+   ring. See the focus note in this file's header for the second branch. */
+.formatted__code--copyable:focus-visible,
+.formatted__code--copyable[data-keel-focus] {
+  outline: none;
+  box-shadow:
+    0 0 0 var(--focus-ring-offset) hsl(var(--background)),
+    0 0 0 calc(var(--focus-ring-offset) + var(--focus-ring-width)) hsl(var(--ring));
+}
+
+/* Copied. A held state rather than a flash, so it has to outrank the hover below:
+   otherwise the pointer that did the copying paints over the confirmation. */
+.formatted__code--copied {
+  background-color: hsl(var(--success) / 0.25);
+}
+
+@media (hover: hover) {
+  .formatted__code--copyable:hover {
+    background-color: hsl(var(--muted) / 0.7);
+  }
+
+  /* Same specificity as the rule above, and after it, which is what makes the
+     confirmation win while the pointer is still on the span. */
+  .formatted__code--copied:hover {
+    background-color: hsl(var(--success) / 0.25);
+  }
+}
+
 /* --------------------------------------------------- formatting toolbar ---- */
 
 .toolbar {
