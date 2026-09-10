@@ -908,7 +908,13 @@ button.card__title {
   }
 }
 
-.formatted__underline {
+/* The second selector is the same underline inside the editor, where it is drawn as
+   a bare `<u>` instead - because that is the only shape the browser's own underline
+   command can remove again, and it is what that command builds. Both have to look
+   like the finished note, so the three of them are one rule. `FormattedDom` carries
+   the reasoning. */
+.formatted__underline,
+.formatting-editor u {
   text-decoration: underline;
   text-decoration-color: hsl(var(--foreground) / 0.5);
   text-underline-offset: 2px;
@@ -964,6 +970,19 @@ button.card__title {
     background-color: hsl(var(--accent));
     color: hsl(var(--accent-foreground));
   }
+}
+
+/* On, meaning the caret is inside a run carrying this mark. Keyed off the attribute
+   assistive technology reads, exactly as `.switch[aria-checked]` is, so the colour
+   and the announcement cannot disagree.
+
+   Deliberately louder than the hover state and quieter than a filled button: it has
+   to be readable at a glance while four of them sit in a row, and it also has to be
+   distinguishable from hover, since the pointer is usually on one of them when it
+   changes. */
+.toolbar__button[aria-pressed='true'] {
+  background-color: hsl(var(--primary) / 0.15);
+  color: hsl(var(--primary));
 }
 
 /* ------------------------------------------------------------- tag pill ---- */
@@ -1182,6 +1201,92 @@ button.card__title {
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
+}
+
+/* The editable surface. Borrows the field look from `.input` rather than restating
+   it, so a formatting field and a plain one are the same box - they sit next to each
+   other in every dialog that has both.
+
+   `white-space: pre-wrap` is load-bearing twice over: it keeps the runs of spaces a
+   user types, and it is what makes an empty last line reachable at all. */
+.formatting-editor {
+  width: 100%;
+  border: 1px solid hsl(var(--input));
+  border-radius: var(--radius-lg);
+  background-color: hsl(var(--card));
+  color: hsl(var(--foreground));
+  padding: var(--input-py) var(--input-px);
+  font-family: inherit;
+  font-size: var(--control-font-size);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  /* A pasted address with no spaces in it must not push the dialog wider. */
+  overflow-wrap: anywhere;
+  transition: box-shadow var(--duration-fast) var(--ease);
+}
+
+/* A line of this field is a paragraph in the editor's schema, so a field with two
+   lines in it holds two `<p>`s. The browser's own margin between them would read as
+   a gap the typist did not put there. Nothing else in the field is a block, so this
+   is the whole of the reset the editor needs - there is no fifth stylesheet. */
+.formatting-editor p {
+  margin: 0;
+}
+
+/* The editor parks an empty `<img>` at the caret while a mark is pending but not yet
+   typed into - press Bold with nothing selected and one appears. It carries no image
+   and is meant to be invisible, so this is here to survive a consumer's own generic
+   `img` rule, which would otherwise give it a border or a size. Taken from
+   `prosemirror-view`'s stylesheet, which keel does not ship: this and the paragraph
+   reset above are the only two rules from it that a field with four inline marks and
+   one block can be affected by. */
+img.ProseMirror-separator {
+  display: inline !important;
+  border: none !important;
+  margin: 0 !important;
+}
+
+/* `min-height` comes from the call site as an inline style, because it is derived
+   from `textRows`. This only says the field may grow past it. */
+.formatting-editor--multiline {
+  height: auto;
+}
+
+/* The same soft glow a plain field gets, and the same reasoning - see the note above
+   `.input:focus`. `:focus` rather than `:focus-visible`: an editable is focused by
+   clicking into it far more often than by tabbing, and a caret sitting in a box with
+   no focus mark reads as a field that is not accepting input. */
+.formatting-editor:focus,
+.formatting-editor[data-keel-focus] {
+  outline: none;
+  box-shadow: 0 0 0 var(--focus-ring-width) hsl(var(--ring) / var(--focus-glow-alpha));
+}
+
+/* A `contenteditable` has no `placeholder`, so the prompt is drawn from an attribute
+   the component keeps up to date. Keyed off `data-empty` rather than `:empty`, which
+   would not work: a browser keeps a `<br>` inside an empty editable, and an element
+   holding one is not `:empty`.
+
+   `position: absolute` so the prompt takes no space of its own. Left in the flow it
+   would set the field's height, and a one-line placeholder in a six-row field would
+   collapse it to one row. */
+.formatting-editor[data-empty='true'] {
+  position: relative;
+}
+
+.formatting-editor[data-empty='true']::before {
+  content: attr(data-placeholder);
+  position: absolute;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+}
+
+/* See the "touch" note in the header: iOS zooms for any focused field under the
+   threshold, and this is a field however it is built. */
+@media (pointer: coarse) {
+  .formatting-editor {
+    font-size: var(--input-font-size-touch);
+  }
 }
 
 /* ---------------------------------------------------------------- badge ---- */
